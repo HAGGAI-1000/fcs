@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "scope_id": "fcs_portal_and_direct_references_only",
+  "entrypoints": [
+    "https://fcs.health.gov.il/publicationsCategories/0"
+  ],
+  "fcs_service_hosts": [
+    "fcs.health.gov.il",
+    "mohservicesapi.health.gov.il"
+  ],
+  "denied_hosts": [
+    "fcsportal.health.gov.il"
+  ],
+  "direct_reference_fields": [
+    "infoLinkUrl",
+    "docs[].linkToDocument"
+  ],
+  "rules": {
+    "manual_external_seeds_allowed": false,
+    "external_url_requires_fcs_provenance": true,
+    "https_only": true,
+    "follow_exact_references_only": true,
+    "record_redirect_chain": true,
+    "maximum_redirects": 5,
+    "maximum_download_bytes": 52428800
+  },
+  "active_manifests": [
+    "data/metadata/fcs_entrypoint_manifest.jsonl",
+    "data/metadata/fcs_document_downloads.json",
+    "data/metadata/fcs_direct_references.json",
+    "data/metadata/fcs_referenced_downloads.json"
+  ],
+  "excluded_from_ingestion": [
+    "data/raw/access_audit",
+    "data/raw/configured_sources",
+    "data/metadata/open_data_candidates.json",
+    "data/metadata/source_manifest.jsonl",
+    "config/archived_sources_pre_fcs_only.json"
+  ]
+}

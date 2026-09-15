@@ -1,0 +1,98 @@
+name: FCS remote crawl
+
+on:
+  workflow_dispatch:
+    inputs:
+      crawl_mode:
+        description: "Smoke test one category or crawl the full catalogue"
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - full
+      download_documents:
+        description: "Download every FCS-hosted document found in the selected categories"
+        required: true
+        default: true
+        type: boolean
+      collect_direct_references:
+        description: "Also download exact external pages directly referenced by FCS"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fcs-remote-crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUTF8: "1"
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-phase1.txt
+
+      - name: Install Python and browser dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-phase1.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Crawl public FCS catalogue
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --project-root "$GITHUB_WORKSPACE"
+            --show-browser
+            --browser-channel bundled
+          )
+          if [[ "${{ inputs.crawl_mode }}" == "smoke" ]]; then
+            args+=(--limit-categories 1)
+          fi
+          if [[ "${{ inputs.download_documents }}" == "true" ]]; then
+            args+=(--download-all-documents)
+          fi
+          xvfb-run -a python scripts/collect_fcs_publications.py "${args[@]}"
+
+      - name: Collect direct FCS references
+        if: ${{ success() && inputs.collect_direct_references }}
+        run: python scripts/collect_referenced_sources.py --project-root "$GITHUB_WORKSPACE" --refresh
+
+      - name: Verify scope and Phase 1 controls
+        if: ${{ success() }}
+        run: python scripts/verify_phase1.py --project-root "$GITHUB_WORKSPACE"
+
+      - name: Upload crawl evidence and documents
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcs-crawl-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 6
+          path: |
+            data/raw/fcs_publications/
+            data/raw/fcs_documents/
+            data/raw/fcs_referenced_sources/
+            data/metadata/fcs_publication_inventory.json
+            data/metadata/fcs_direct_references.json
+            data/metadata/fcs_document_downloads.json
+            data/metadata/fcs_referenced_downloads.json
+            reports/fcs_crawl_run.md

@@ -1,0 +1,121 @@
+{
+  "scope": "Commercial import of food not of animal origin into Israel",
+  "retrieved_policy": "Preserve snapshots and record SHA-256, retrieval time, publication/effective dates when available.",
+  "sources": [
+    {
+      "id": "fcs_public_portal",
+      "url": "https://fcs.health.gov.il/",
+      "authority": "Israel Ministry of Health — National Food Service",
+      "source_type": "official_portal",
+      "legal_priority": 3,
+      "topics": ["portal", "publications"],
+      "notes": "JavaScript-rendered public landing page. Secure portal is explicitly out of scope."
+    },
+    {
+      "id": "moh_import_food_unit",
+      "url": "https://www.gov.il/he/departments/units/import-food-inspection-unit",
+      "authority": "Israel Ministry of Health",
+      "source_type": "official_guidance",
+      "legal_priority": 3,
+      "topics": ["import-routes", "ordinary-food", "sensitive-food"]
+    },
+    {
+      "id": "moh_importer_registration",
+      "url": "https://www.gov.il/he/service/non-animal-derived-food-importer-registration",
+      "authority": "Israel Ministry of Health",
+      "source_type": "official_service",
+      "legal_priority": 3,
+      "topics": ["importer-registration", "warehouse", "smart-card"]
+    },
+    {
+      "id": "moh_sensitive_food_permit",
+      "url": "https://www.gov.il/he/service/sensitive-food-importation-permit",
+      "authority": "Israel Ministry of Health",
+      "source_type": "official_service",
+      "legal_priority": 3,
+      "topics": ["sensitive-food", "prior-approval", "documents"]
+    },
+    {
+      "id": "moh_sensitive_food_extension",
+      "url": "https://www.gov.il/he/service/sensitive-food-product-permit-extension",
+      "authority": "Israel Ministry of Health",
+      "source_type": "official_service",
+      "legal_priority": 3,
+      "topics": ["sensitive-food", "renewal", "fees"]
+    },
+    {
+      "id": "moh_ordinary_food_declaration",
+      "url": "https://www.gov.il/he/service/electronic-submission-import-non-sensitive-food",
+      "authority": "Israel Ministry of Health",
+      "source_type": "official_service",
+      "legal_priority": 3,
+      "topics": ["ordinary-food", "declaration", "release"]
+    },
+    {
+      "id": "moh_labeling_guidance",
+      "url": "https://www.gov.il/he/pages/food-labeling?chapterIndex=3",
+      "authority": "Israel Ministry of Health",
+      "source_type": "official_guidance",
+      "legal_priority": 3,
+      "topics": ["labeling", "nutrition", "transition"]
+    },
+    {
+      "id": "moh_nutrition_labeling_regulations",
+      "url": "https://www.gov.il/he/pages/food-labeling-2017",
+      "authority": "Israel Ministry of Health",
+      "source_type": "regulation_landing_page",
+      "legal_priority": 2,
+      "topics": ["labeling", "nutrition", "front-of-pack"]
+    },
+    {
+      "id": "moh_eu_reform_notice",
+      "url": "https://www.gov.il/BlobFolder/policy/fcs-262994724/he/files_regulation_fcs_fcs-262994724.pdf",
+      "authority": "Israel Ministry of Health — National Food Service",
+      "source_type": "official_notice",
+      "legal_priority": 2,
+      "topics": ["eu-adoption", "reform", "effective-dates"]
+    },
+    {
+      "id": "moh_sensitive_food_procedure_05_001",
+      "url": "https://www.gov.il/BlobFolder/policy/food05-001/he/files_circulars_food_food05-001.pdf",
+      "authority": "Israel Ministry of Health — National Food Service",
+      "source_type": "procedure",
+      "legal_priority": 3,
+      "topics": ["sensitive-food", "procedure", "release", "appendices"]
+    },
+    {
+      "id": "public_health_food_law",
+      "url": "https://fs.knesset.gov.il/20/law/20_lsr_316718.pdf",
+      "authority": "Knesset of Israel",
+      "source_type": "statute_publication",
+      "legal_priority": 1,
+      "topics": ["food-law", "importer-obligations", "enforcement"],
+      "notes": "Original 2015 publication; must be combined with later amendments or a verified consolidated text."
+    },
+    {
+      "id": "public_health_food_law_amendment_10",
+      "url": "https://fs.knesset.gov.il/25/law/25_lsr_4758414.pdf",
+      "authority": "Knesset of Israel",
+      "source_type": "statute_amendment",
+      "legal_priority": 1,
+      "topics": ["food-law", "amendment-10", "eu-adoption", "transition"],
+      "notes": "Amendment 10 and temporary provision, 2024."
+    },
+    {
+      "id": "economy_import_landing",
+      "url": "https://www.gov.il/he/departments/topics/import_to_israel/govil-landing-page",
+      "authority": "Israel Ministry of Economy and Industry",
+      "source_type": "official_guidance",
+      "legal_priority": 3,
+      "topics": ["import", "licensing", "quotas", "customs-adjacent"]
+    },
+    {
+      "id": "economy_mandatory_standards_search",
+      "url": "https://www.gov.il/he/Departments/DynamicCollectors/mandatory-standards-search",
+      "authority": "Israel Ministry of Economy and Industry",
+      "source_type": "official_register",
+      "legal_priority": 2,
+      "topics": ["standards", "mandatory-standards", "import-compliance"]
+    }
+  ]
+}

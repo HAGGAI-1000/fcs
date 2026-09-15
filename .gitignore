@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.playwright-browsers/
+.pytest_cache/
+logs/*.log
+data/raw/
+data/metadata/*.json
+data/metadata/*.jsonl
+data/metadata/*.tmp
+reports/fcs_crawl_run.md

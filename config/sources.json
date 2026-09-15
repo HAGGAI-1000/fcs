@@ -1,0 +1,16 @@
+{
+  "scope_id": "fcs_portal_and_direct_references_only",
+  "scope": "Public FCS publication portal and exact public sources directly referenced by an FCS publication",
+  "policy_file": "config/crawl_policy.json",
+  "sources": [
+    {
+      "id": "fcs_publication_catalogue",
+      "url": "https://fcs.health.gov.il/publicationsCategories/0",
+      "authority": "Israel Ministry of Health - National Food Service",
+      "source_type": "crawl_entrypoint",
+      "legal_priority": 3,
+      "topics": ["portal", "publications"],
+      "notes": "The only manually configured acquisition entry point. Every additional eligible URL must be discovered in an FCS publication record and retain that provenance."
+    }
+  ]
+}

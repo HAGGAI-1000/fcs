@@ -1,0 +1,123 @@
+# FCS Israel Food Import Assistant — Phase 1
+
+This repository contains the discovery work for a future LlamaIndex-based
+assistant for commercial food imports into Israel.
+
+The active acquisition scope is deliberately narrow: the public FCS publication
+catalogue plus exact public URLs directly referenced by its publication records.
+Manually selected DataGov, gov.il, Knesset, or other external URLs are not active
+sources. The project does not access the authenticated FCS portal, submit forms,
+or provide a final legal determination.
+
+## Application language
+
+All interaction between the application and its human users must be in Hebrew,
+including questions, answers, clarification prompts, warnings, abstentions, and
+error messages. Original source titles and quotations may remain in their source
+language, but the application must explain them in Hebrew. Code, internal field
+names, and project documentation may remain in English.
+
+The Phase 1 evaluation set contains 50 Hebrew questions. The verifier requires
+every row to use `language=he` and to contain Hebrew question text. English
+acronyms and formal identifiers may appear inside an otherwise Hebrew question.
+
+## Repository layout
+
+- `config/crawl_policy.json` — machine-enforced acquisition and ingestion boundary.
+- `config/sources.json` — the single manually configured FCS entry point.
+- `scripts/collect_sources.py` — snapshots only that FCS entry point.
+- `scripts/discover_fcs_bundle.py` — records the FCS frontend/configuration and
+  extracts candidate public endpoint names without calling authenticated actions.
+- `scripts/collect_fcs_publications.py` — browser-rendered metadata collector for
+  the public FCS catalogue and creator of the direct-reference manifest.
+- `scripts/collect_referenced_sources.py` — downloads only exact URLs present in
+  that provenance-bearing FCS reference manifest.
+- `scripts/audit_public_access.py` — retained historical discovery tool; it is
+  not invoked by the active collection workflow.
+- `scripts/verify_phase1.py` — validates Phase 1 deliverables and manifests.
+- `data/raw/` — immutable source snapshots.
+- `data/metadata/` — manifests, inventories, and the initial evaluation set.
+- `reports/` — discovery findings and source-authority policy.
+- `logs/` — execution logs.
+
+## Quick start
+
+```powershell
+Set-Location C:\projects\fcs
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-phase1.txt
+.\run_phase1.ps1 -RunBrowserCollection
+```
+
+Add `-RunBrowserCollection` to attempt the optional public-catalogue browser
+collector. Ministry edge controls may prevent the catalogue data from loading in
+a standalone automated browser; this is recorded as a Phase 1 integration risk.
+
+The verified crawl demonstration uses installed Chrome in visible mode and
+downloads one FCS-linked guide with a checksum-backed manifest:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\collect_fcs_publications.py `
+  --project-root C:\projects\fcs --show-browser --limit-categories 2 `
+  --browser-channel chrome --download-match 'מדריך בנושא יבוא מזון מעודכן'
+```
+
+In the Phase 1 environment, visible Chrome rendered the catalogue reliably;
+headless Chrome timed out. Treat the collector as browser-assisted until an
+unattended mode passes repeated runs.
+
+## Remote crawl with GitHub Actions
+
+The manually triggered workflow at `.github/workflows/fcs-crawl.yml` runs
+headed Playwright Chromium inside an Xvfb virtual display on a GitHub-hosted
+Linux runner. It never needs a desktop session on the local machine.
+
+Start with `crawl_mode=smoke`, which collects one category. After that succeeds,
+run `crawl_mode=full`. `download_documents=true` retrieves every unique
+FCS-hosted document found by that run. External direct references are disabled
+by default and may be enabled separately; they are still restricted to exact
+URLs carrying FCS provenance in `fcs_direct_references.json`.
+
+Every run uploads its raw catalogue responses, manifests, checksums, report, and
+downloaded documents as a private workflow artifact retained for 14 days. Crawl
+outputs are intentionally ignored by Git: authoritative run results should be
+downloaded from the Actions run rather than committed to repository history.
+
+The optional publication collector uses the locally installed Google Chrome channel by
+default. To use a Playwright-managed browser instead, keep its files in the
+project and pass `--browser-channel bundled`:
+
+```powershell
+$env:PLAYWRIGHT_BROWSERS_PATH = 'C:\projects\fcs\.playwright-browsers'
+python -m playwright install chromium
+python .\scripts\collect_fcs_publications.py --browser-channel bundled
+```
+
+To collect public pages or documents directly referenced in the crawled FCS
+records, run:
+
+```powershell
+.\run_phase1.ps1 -DownloadReferencedSources
+```
+
+This downloader accepts no arbitrary URL argument. Its only URL input is
+`data/metadata/fcs_direct_references.json`, produced by the FCS crawler.
+
+## Safety and provenance rules
+
+1. The only manually configured source is the public FCS catalogue entry point.
+2. An external URL is eligible only when an FCS publication supplies it in
+   `infoLinkUrl` or `docs[].linkToDocument`, with `discovered_from` provenance.
+3. Redirects are recorded and validated; only public HTTPS destinations are used.
+4. Every snapshot receives a SHA-256 checksum and retrieval timestamp.
+5. Old versions are retained; a later ingestion phase should mark them as
+   superseded rather than silently deleting them.
+6. The authenticated portal at `fcsportal.health.gov.il` is denied in code.
+7. DataGov and pre-policy configured downloads are historical discovery evidence
+   and are explicitly excluded from ingestion.
+8. Informational pages and Q&A never override statutes, regulations, or official
+   gazette publications.
+
+See `reports/source_scope_policy.md` for the enforceable boundary and
+`data/README.md` for active versus historical paths.
