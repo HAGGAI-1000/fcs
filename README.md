@@ -1,4 +1,4 @@
-# FCS Israel Food Import Assistant — Phase 1
+# FCS Israel Food Import Assistant
 
 This repository contains the discovery work for a future LlamaIndex-based
 assistant for commercial food imports into Israel.
@@ -32,6 +32,14 @@ acronyms and formal identifiers may appear inside an otherwise Hebrew question.
   the public FCS catalogue and creator of the direct-reference manifest.
 - `scripts/collect_referenced_sources.py` — downloads only exact URLs present in
   that provenance-bearing FCS reference manifest.
+- `scripts/classify_references.py` — classifies those exact references without
+  expanding the source scope.
+- `scripts/extract_documents.py` — checksum-verifies FCS PDFs and emits
+  normalized page-level JSONL with OCR-review signals.
+- `scripts/validate_extraction.py` — validates document/page completeness,
+  checksums, and extraction metadata.
+- `scripts/test_phase2a.py` — regression checks for multilingual text quality
+  and rejection of empty, false-PDF, and anti-bot payloads.
 - `scripts/audit_public_access.py` — retained historical discovery tool; it is
   not invoked by the active collection workflow.
 - `scripts/verify_phase1.py` — validates Phase 1 deliverables and manifests.
@@ -121,3 +129,35 @@ This downloader accepts no arbitrary URL argument. Its only URL input is
 
 See `reports/source_scope_policy.md` for the enforceable boundary and
 `data/README.md` for active versus historical paths.
+
+## Phase 2A: extraction and quality audit
+
+Install the Phase 2 dependencies and run the manifest-driven extraction flow:
+
+```powershell
+Set-Location C:\projects\fcs
+.\.venv\Scripts\python.exe -m pip install -r requirements-phase2.txt
+.\run_phase2a.ps1
+```
+
+Add `-DownloadReferencedSources` to snapshot exact eligible external pages
+directly referenced by FCS. YouTube references remain metadata-only until a
+caption or transcript collection strategy can preserve provenance. A successful
+HTTP response is not automatically accepted as source content: anti-bot
+challenge shells are retained as retrieval evidence, marked non-ingestible, and
+excluded from later chunking.
+
+The Phase 2A runner first executes its regression checks, classifies external
+references, verifies every input document against its download checksum,
+extracts page-level text, flags low-text pages for OCR review, and validates
+page/document consistency. Generated JSONL, manifests,
+and run reports are ignored by Git and remain under the local project root.
+
+Phase 2A does not create embeddings or a vector index. Its validated page JSONL
+is the controlled input to the next step: selective OCR, section-aware chunking,
+and retrieval benchmarking against the 50-question Hebrew evaluation set.
+
+See `reports/phase2a_status.md` for the latest corpus metrics, visual OCR audit,
+and direct-reference retrieval findings. The accepted MVP decision in
+`reports/ocr_policy.md` is to proceed without bulk OCR and add it selectively
+only when visual evidence or retrieval evaluation demonstrates a need.

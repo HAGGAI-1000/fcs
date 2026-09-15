@@ -17,6 +17,15 @@
 - `raw/fcs_referenced_sources/` - downloaded exact FCS references.
 - `raw/github_artifacts/` - checksum-verified GitHub Actions crawl archives kept
   as immutable run evidence; never ingest these ZIP files into the RAG corpus.
+- `processed/fcs_documents.jsonl` - one extraction-quality record per FCS PDF.
+- `processed/fcs_pages.jsonl` - normalized page-level text and provenance used
+  as the input to later chunking.
+- `metadata/fcs_reference_classification.json` - type and collection routing for
+  exact direct references.
+- `metadata/extraction_manifest.json` - extraction dependency, input checksum,
+  and aggregate quality metrics.
+- `metadata/extraction_validation.json` - structural and checksum validation
+  results for extracted documents and pages.
 
 Future ingestion must use the active manifests, never a recursive scan of this
 directory.

@@ -14,6 +14,7 @@ import ipaddress
 import json
 import mimetypes
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
@@ -30,6 +31,14 @@ ALLOWED_CONTENT_TYPES = {
     "text/xml",
 }
 USER_AGENT = "FCS-RAG-DirectReferenceCollector/0.1 (+public FCS provenance)"
+METADATA_ONLY_HOSTS = {"youtu.be", "youtube.com", "www.youtube.com", "m.youtube.com"}
+RETRYABLE_STATUSES = {403, 408, 425, 429, 500, 502, 503, 504}
+REQUEST_ATTEMPTS = 5
+HTML_CHALLENGE_MARKERS = (
+    b"window.awswafcookiedomainlist",
+    b'id="challenge-container"',
+    b"verify that you're not a robot",
+)
 
 
 def now() -> str:
@@ -67,6 +76,22 @@ def extension_for(content_type: str, url: str) -> str:
     }.get(content_type, mimetypes.guess_extension(content_type) or ".bin")
 
 
+def assess_payload(content_type: str, content: bytes) -> tuple[str, str | None]:
+    """Reject transport-success responses that do not contain ingestible source content."""
+    if not content:
+        return "invalid_content", "The response body is empty"
+    if content_type == "application/pdf" and not content.lstrip().startswith(b"%PDF-"):
+        return "invalid_content", "The response claims to be a PDF but has no PDF signature"
+    if content_type in {"text/html", "application/xhtml+xml"}:
+        lowered = content.lower()
+        if any(marker in lowered for marker in HTML_CHALLENGE_MARKERS):
+            return (
+                "blocked_content_challenge",
+                "The server returned an anti-bot challenge shell instead of the referenced page",
+            )
+    return "downloaded", None
+
+
 def download_reference(
     session: requests.Session,
     reference: dict,
@@ -74,6 +99,7 @@ def download_reference(
     denied_hosts: set[str],
     maximum_redirects: int,
     maximum_bytes: int,
+    root: Path,
 ) -> dict:
     if reference.get("relationship") != "direct_fcs_publication_reference":
         raise ValueError("Reference lacks the required FCS relationship")
@@ -84,14 +110,26 @@ def download_reference(
 
     current_url = reference["url"]
     validate_public_url(current_url, denied_hosts)
+    if (urlparse(current_url).hostname or "").lower() in METADATA_ONLY_HOSTS:
+        return {
+            **reference,
+            "status": "metadata_only_requires_transcript",
+            "checked_at": now(),
+            "reason": "A video landing-page HTML shell is not ingestible video or caption content",
+        }
     redirects = []
     for _ in range(maximum_redirects + 1):
-        response = session.get(
-            current_url,
-            allow_redirects=False,
-            stream=True,
-            timeout=(20, 120),
-        )
+        for attempt in range(1, REQUEST_ATTEMPTS + 1):
+            response = session.get(
+                current_url,
+                allow_redirects=False,
+                stream=True,
+                timeout=(20, 120),
+            )
+            if response.status_code not in RETRYABLE_STATUSES or attempt == REQUEST_ATTEMPTS:
+                break
+            response.close()
+            time.sleep(2 ** (attempt - 1))
         if response.is_redirect or response.is_permanent_redirect:
             location = response.headers.get("location")
             response.close()
@@ -149,14 +187,18 @@ def download_reference(
     extension = extension_for(content_type, current_url)
     destination = raw_dir / f"{reference['reference_id']}{extension}"
     destination.write_bytes(content)
+    payload_status, payload_reason = assess_payload(content_type, content)
     result.update(
         {
-            "status": "downloaded",
-            "path": destination.as_posix(),
+            "status": payload_status,
+            "path": destination.relative_to(root).as_posix(),
             "bytes": len(content),
             "sha256": hashlib.sha256(content).hexdigest(),
+            "ingestible": payload_status == "downloaded",
         }
     )
+    if payload_reason:
+        result["reason"] = payload_reason
     return result
 
 
@@ -198,6 +240,8 @@ def main() -> int:
     for reference in references:
         previous = prior_by_id.get(reference["reference_id"])
         previous_path = Path(previous["path"]) if previous and previous.get("path") else None
+        if previous_path and not previous_path.is_absolute():
+            previous_path = root / previous_path
         if previous and previous.get("status") == "downloaded" and previous_path and previous_path.exists():
             records.append(previous)
             print(f"SKIP {reference['url']} (already downloaded)")
@@ -212,6 +256,7 @@ def main() -> int:
                     denied_hosts,
                     int(rules["maximum_redirects"]),
                     int(rules["maximum_download_bytes"]),
+                    root,
                 )
             )
         except Exception as exc:
@@ -235,7 +280,14 @@ def main() -> int:
     temporary.replace(output_path)
     downloaded = sum(row.get("status") == "downloaded" for row in records)
     errors = sum(row.get("status") == "error" for row in records)
-    print(f"Wrote {output_path}: {downloaded} downloaded, {errors} errors")
+    metadata_only = sum(row.get("status") == "metadata_only_requires_transcript" for row in records)
+    blocked = sum(row.get("status") == "blocked_content_challenge" for row in records)
+    invalid = sum(row.get("status") == "invalid_content" for row in records)
+    print(
+        f"Wrote {output_path}: {downloaded} downloaded, "
+        f"{blocked} content-challenge blocked, {invalid} invalid-content, "
+        f"{metadata_only} metadata-only, {errors} errors"
+    )
     return 1 if errors else 0
 
 

@@ -5,7 +5,11 @@ __pycache__/
 .pytest_cache/
 logs/*.log
 data/raw/
+data/processed/
 data/metadata/*.json
 data/metadata/*.jsonl
 data/metadata/*.tmp
 reports/fcs_crawl_run.md
+reports/extraction_quality.md
+reports/extraction_validation.md
+reports/reference_classification.md
