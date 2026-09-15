@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
@@ -21,6 +22,8 @@ from urllib.parse import urlparse, urlunparse
 PUBLIC_URL = "https://fcs.health.gov.il/publicationsCategories/0"
 DOCUMENT_URL = "https://fcs.health.gov.il/FCS/GetSpecificDocument"
 EXPECTED_HOST = "fcs.health.gov.il"
+DOCUMENT_DOWNLOAD_ATTEMPTS = 5
+RETRYABLE_DOCUMENT_STATUSES = {403, 408, 425, 429, 500, 502, 503, 504}
 
 
 def now() -> str:
@@ -158,14 +161,26 @@ def download_fcs_document(
     guid = (document.get("guid") or "").strip()
     if not guid:
         raise RuntimeError("Document has no GUID")
-    response = request_context.post(
-        DOCUMENT_URL,
-        data={"docType": 26, "docId": guid},
-        headers={"Referer": PUBLIC_URL, "Accept": "application/json, text/plain, */*"},
-        timeout=120_000,
-    )
-    if response.status != 200:
-        raise RuntimeError(f"Document request failed with HTTP {response.status}")
+    response = None
+    for attempt in range(1, DOCUMENT_DOWNLOAD_ATTEMPTS + 1):
+        response = request_context.post(
+            DOCUMENT_URL,
+            data={"docType": 26, "docId": guid},
+            headers={"Referer": PUBLIC_URL, "Accept": "application/json, text/plain, */*"},
+            timeout=120_000,
+        )
+        if response.status == 200:
+            break
+        if (
+            response.status not in RETRYABLE_DOCUMENT_STATUSES
+            or attempt == DOCUMENT_DOWNLOAD_ATTEMPTS
+        ):
+            raise RuntimeError(
+                f"Document request failed with HTTP {response.status} after {attempt} attempt(s)"
+            )
+        time.sleep(2 ** (attempt - 1))
+    if response is None:
+        raise RuntimeError("Document request did not return a response")
     payload = response.json()
     encoded = payload.get("data")
     if not isinstance(encoded, str):
@@ -421,6 +436,7 @@ def main() -> int:
                 }
                 download_errors.append(error)
                 print(f"ERROR downloading {name}: {error['error']}", file=sys.stderr, flush=True)
+            time.sleep(0.5)
 
         (raw_dir / "captured_public_responses.json").write_text(
             json.dumps(captured, ensure_ascii=False, indent=2), encoding="utf-8"
