@@ -15,6 +15,8 @@
 - `raw/fcs_entrypoint/` - snapshot of the public FCS catalogue application shell.
 - `raw/fcs_documents/` - downloaded FCS-hosted documents.
 - `raw/fcs_referenced_sources/` - downloaded exact FCS references.
+- `raw/github_artifacts/` - checksum-verified GitHub Actions crawl archives kept
+  as immutable run evidence; never ingest these ZIP files into the RAG corpus.
 
 Future ingestion must use the active manifests, never a recursive scan of this
 directory.
