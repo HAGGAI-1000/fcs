@@ -10,28 +10,31 @@
     <meta name="theme-color" content="#164e63" />
     <title>בדיקת שאלות יבוא מזון</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=4" />
   </head>
   <body>
     <a class="skip-link" href="#review-form">דלג לטופס הבדיקה</a>
     <header class="site-header">
       <div>
-        <p class="eyebrow">פרויקט FCS</p>
+        <p class="eyebrow">שאלון למומחה</p>
         <h1>בדיקת שאלות יבוא מזון</h1>
-        <p class="subtitle">בדיקה עצמאית של מקורות באתר שירות המזון הארצי</p>
+        <p class="subtitle">בדיקת מקורות בפורטל שירות המזון הארצי</p>
       </div>
       <a class="button secondary" href="https://fcs.health.gov.il/" target="_blank" rel="noopener noreferrer">
-        פתח את אתר FCS
+        פתח את פורטל שירות המזון הארצי
       </a>
     </header>
 
     <main>
-      <section class="notice" aria-labelledby="independent-review-title">
-        <h2 id="independent-review-title">בדיקה עצמאית</h2>
-        <p>
-          יש לחפש באתר FCS ובמסמכי ה-PDF המוצגים בו. אין להשתמש בתוצאות האחזור של המערכת
-          בשלב הראשון. כל שינוי נשמר אוטומטית בדפדפן, ושמירת שאלה יוצרת גם גרסת שחזור.
-        </p>
+      <section class="notice" aria-labelledby="questionnaire-instructions-title">
+        <h2 id="questionnaire-instructions-title">הנחיות למילוי השאלון</h2>
+        <ol>
+          <li>עברו על כל שאלה וחפשו מידע מתאים בפורטל שירות המזון הארצי ובמסמכים המופיעים בו.</li>
+          <li>בחרו האם נמצאו מקורות מתאימים והוסיפו את פרטי כל מקור.</li>
+          <li>כתבו תשובה קצרה לשאלה והוסיפו הערות לפי הצורך.</li>
+          <li>לחצו על "שמירת השאלה" ועברו לשאלה הבאה.</li>
+          <li>בסיום כל השאלות, לחצו על "ייצוא קובץ תוצאות".</li>
+        </ol>
       </section>
 
       <section class="progress-panel" aria-label="מצב הבדיקה">
@@ -56,56 +59,46 @@
       <section id="review-form" class="review-card" aria-labelledby="question-heading">
         <div class="question-heading-row">
           <span id="question-number" class="question-number"></span>
-          <span id="risk-badge" class="risk-badge"></span>
         </div>
         <h2 id="question-heading"></h2>
 
         <div class="form-grid single-column">
           <label>
-            <span>תוצאת הבדיקה</span>
+            <span>האם נמצאו מקורות בפורטל שירות המזון?</span>
             <select id="review-outcome">
               <option value="not_reviewed">טרם נבדק</option>
               <option value="source_found">נמצא מקור מתאים</option>
               <option value="source_not_found">לא נמצא מקור לאחר חיפוש</option>
-              <option value="requires_non_fcs_source">נדרש מקור מחוץ לאתר FCS</option>
+              <option value="requires_non_fcs_source">נדרש מקור מחוץ לפורטל שירות המזון הארצי</option>
               <option value="uncertain">לא ודאי</option>
             </select>
           </label>
         </div>
 
-        <label class="full-width">
-          <span>תשובת ייחוס בעברית</span>
-          <textarea id="reference-answer" rows="6" placeholder="תשובה קצרה ומדויקת, כולל עמודים או אסמכתאות"></textarea>
-        </label>
-
-        <label class="full-width">
-          <span>הערות בדיקה</span>
-          <textarea id="review-notes" rows="4" placeholder="אי-בהירות, סתירות, תלות בתאריך או מידע נוסף הנדרש מן המשתמש"></textarea>
-        </label>
-
         <div class="sources-heading">
-          <div>
-            <h3>מקורות תומכים</h3>
-            <p>יש למלא שורה נפרדת לכל מסמך. אין צורך ב-GUID.</p>
-          </div>
+          <h3>מקורות תומכים</h3>
           <button id="add-source" class="button primary" type="button">הוסף מקור</button>
         </div>
         <div id="sources-list" class="sources-list"></div>
 
+        <label class="full-width">
+          <span id="answer-label">תשובה לשאלה</span>
+          <textarea id="reference-answer" rows="6" placeholder="תשובה קצרה, משפט או שניים"></textarea>
+        </label>
+
+        <label class="full-width">
+          <span>הערות</span>
+          <textarea id="review-notes" rows="4" placeholder="אי-בהירות, סתירות, תלות בתאריך או הערות אחרות"></textarea>
+        </label>
+
         <div id="question-errors" class="validation-errors" role="alert" hidden></div>
         <div class="question-save-row">
-          <span id="question-save-state" role="status" aria-live="polite"></span>
           <button id="save-question" class="button primary" type="button">שמירת השאלה</button>
         </div>
       </section>
 
-      <section class="actions-panel" aria-labelledby="export-title">
-        <div>
-          <h2 id="export-title">גרסאות והעברת תוצאות</h2>
-          <p>גרסאות שחזור נשמרות בדפדפן זה. קובץ התוצאות משמש להעברה למחשב אחר או למסירת הבדיקה.</p>
-        </div>
+      <section class="actions-panel" aria-label="קובץ תוצאות">
         <div class="button-row">
-          <button id="open-recovery" class="button secondary" type="button">שחזור גרסה קודמת</button>
           <button id="export-review" class="button primary" type="button">ייצוא קובץ תוצאות</button>
           <label class="button secondary file-button">
             ייבוא קובץ תוצאות
@@ -116,21 +109,6 @@
       </section>
     </main>
 
-    <dialog id="recovery-dialog" aria-labelledby="recovery-title">
-      <div class="dialog-heading">
-        <div>
-          <h2 id="recovery-title">שחזור גרסה קודמת</h2>
-          <p>נשמרות עד 20 גרסאות במכשיר ובדפדפן הנוכחיים.</p>
-        </div>
-        <button id="close-recovery" class="button secondary" type="button">סגירה</button>
-      </div>
-      <div id="snapshot-list" class="snapshot-list"></div>
-    </dialog>
-
-    <footer>
-      <p>היישום אינו שולח נתונים לשרת. טיוטות וגרסאות שחזור נשמרות מקומית בדפדפן זה.</p>
-    </footer>
-
-    <script src="app.js?v=3" defer></script>
+    <script src="app.js?v=4" defer></script>
   </body>
 </html>

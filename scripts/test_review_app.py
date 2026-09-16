@@ -30,12 +30,25 @@ class ReviewAppTests(unittest.TestCase):
         self.assertIn('lang="he" dir="rtl"', html)
         self.assertIn('id="add-source"', html)
         self.assertIn('id="save-question"', html)
-        self.assertIn('id="open-recovery"', html)
-        self.assertIn('id="recovery-dialog"', html)
         self.assertIn('id="export-review"', html)
         self.assertIn('id="import-review"', html)
-        self.assertIn('href="styles.css?v=3"', html)
-        self.assertIn('src="app.js?v=3"', html)
+        self.assertIn('href="styles.css?v=4"', html)
+        self.assertIn('src="app.js?v=4"', html)
+        self.assertIn("הנחיות למילוי השאלון", html)
+        self.assertIn("האם נמצאו מקורות בפורטל שירות המזון?", html)
+        self.assertIn('id="answer-label"', html)
+        self.assertIn('placeholder="תשובה קצרה, משפט או שניים"', html)
+        self.assertIn('placeholder="אי-בהירות, סתירות, תלות בתאריך או הערות אחרות"', html)
+        self.assertLess(html.index('id="sources-list"'), html.index('id="reference-answer"'))
+        self.assertNotIn('id="risk-badge"', html)
+        self.assertNotIn('id="open-recovery"', html)
+        self.assertNotIn('id="recovery-dialog"', html)
+        self.assertNotIn("תוצאת הבדיקה", html)
+        self.assertNotIn("תשובת ייחוס בעברית", html)
+        self.assertNotIn("הערות בדיקה", html)
+        self.assertNotIn("יש למלא שורה נפרדת", html)
+        self.assertNotIn("גרסאות והעברת תוצאות", html)
+        self.assertNotIn("<footer", html)
         self.assertNotIn('id="review-status"', html)
         self.assertNotIn('id="validate-all"', html)
         self.assertNotIn('id="reset-all"', html)
@@ -66,7 +79,8 @@ class ReviewAppTests(unittest.TestCase):
         self.assertIn("indexedDB", script)
         self.assertIn('const SNAPSHOT_LIMIT = 20;', script)
         self.assertIn('createSnapshot("question_saved"', script)
-        self.assertIn('createSnapshot("before_restore"', script)
+        self.assertIn('createSnapshot("import"', script)
+        self.assertNotIn('createSnapshot("before_restore"', script)
         self.assertIn("fcs.health.gov.il", script)
 
     def test_user_facing_result_file_terms_are_format_neutral(self) -> None:
@@ -83,10 +97,32 @@ class ReviewAppTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
+        questions = json.loads(
+            (ROOT / "data" / "metadata" / "eval_questions.json").read_text(
+                encoding="utf-8"
+            )
+        )
         self.assertEqual(payload["schema_version"], 2)
         self.assertEqual(payload["question_count"], 50)
         self.assertEqual(len(payload["reviews"]), 50)
         self.assertTrue(all(isinstance(row["sources"], list) for row in payload["reviews"]))
+        self.assertEqual(
+            [(row["question_id"], row["question_text_he"]) for row in payload["reviews"]],
+            [(row["id"], row["question"]) for row in questions],
+        )
+
+    def test_revised_questions_do_not_depend_on_missing_product_context(self) -> None:
+        questions = json.loads(
+            (ROOT / "data" / "metadata" / "eval_questions.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        revised_ids = {"Q009", "Q030", "Q032", "Q036", "Q040", "Q043", "Q049"}
+        revised = {row["id"]: row["question"] for row in questions if row["id"] in revised_ids}
+        self.assertEqual(set(revised), revised_ids)
+        for question in revised.values():
+            for ambiguous_phrase in ["מוצר זה", "אותו מוצר", "סוג מזון זה", "המזהם", "בבקשתי"]:
+                self.assertNotIn(ambiguous_phrase, question)
 
     def test_active_evaluation_files_are_json_only(self) -> None:
         metadata = ROOT / "data" / "metadata"

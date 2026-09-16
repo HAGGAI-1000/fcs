@@ -221,7 +221,7 @@ created. See
 
 The static application under `review_app/` provides a Hebrew RTL interface for
 the independent domain review. It automatically saves drafts in `localStorage`,
-keeps up to 20 recoverable IndexedDB snapshots, allows sources to be added or
+keeps up to 20 background IndexedDB snapshots, allows sources to be added or
 removed interactively, and validates approval rules and FCS URLs whenever a
 question is explicitly saved. Editing a saved question returns it to draft
 status. The app exports one English-keyed JSON results file consumed by
@@ -229,7 +229,8 @@ status. The app exports one English-keyed JSON results file consumed by
 IDs, eliminating the duplicated question/source CSV rows. That results file is
 the required transfer and handoff mechanism for another browser or device;
 browser drafts and snapshots remain local and can be lost if site data is
-cleared.
+cleared. The streamlined reviewer interface does not expose snapshot recovery
+controls.
 
 GitHub Pages deployment is defined in `.github/workflows/pages.yml`. The
 workflow verifies that `review_app/questions.json` exactly matches the canonical

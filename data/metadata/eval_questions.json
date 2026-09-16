@@ -75,10 +75,10 @@
     "id": "Q009",
     "category": "route_classification",
     "language": "he",
-    "question": "האם מסלול היבוא האירופי חל על מוצר זה ועל היבואן?",
+    "question": "אילו תנאים חייבים להתקיים כדי שמוצר פסטה עמיד במדף, המיוצר ומשווק כדין באיטליה, ייובא לישראל במסלול היבוא האירופי בידי יבואן רשום?",
     "expected_source_type": "statute_and_adoption_notice",
     "risk_level": "high",
-    "notes": "Needs product facts and effective date"
+    "notes": "Eligibility conditions for an Italy-manufactured shelf-stable pasta and a registered importer"
   },
   {
     "id": "Q010",
@@ -264,7 +264,7 @@
     "id": "Q030",
     "category": "labeling",
     "language": "he",
-    "question": "איזה משטר סימון חל על אותו מוצר לאחר 1 בינואר 2028?",
+    "question": "איזה משטר סימון תזונתי חל על מוצר מזון המשווק בישראל החל מ-1 בינואר 2028?",
     "expected_source_type": "statute_and_transition_notice",
     "risk_level": "high",
     "notes": "Temporal boundary"
@@ -282,10 +282,10 @@
     "id": "Q032",
     "category": "labeling",
     "language": "he",
-    "question": "האם מוצר זה חייב בסמלי אזהרה אדומים בחזית האריזה?",
+    "question": "ביסקוויט מיובא מכיל, ל-100 גרם, 15 גרם סוכרים, 700 מ״ג נתרן ו-6 גרם שומן רווי. אילו סמלי אזהרה אדומים נדרשים בחזית האריזה?",
     "expected_source_type": "nutrition_labeling_regulations",
     "risk_level": "high",
-    "notes": "Needs nutrient values"
+    "notes": "Apply warning-symbol thresholds to supplied nutrient values"
   },
   {
     "id": "Q033",
@@ -318,10 +318,10 @@
     "id": "Q036",
     "category": "composition",
     "language": "he",
-    "question": "אילו הוראות מאומצות חלות על מזהמים בסוג מזון זה?",
+    "question": "אילו הוראות מאומצות חלות על אקרילאמיד בחטיפי תפוחי אדמה מיובאים?",
     "expected_source_type": "adopted_provision",
     "risk_level": "high",
-    "notes": "Group 1 retrieval"
+    "notes": "Adopted-provision retrieval for acrylamide in imported potato snacks"
   },
   {
     "id": "Q037",
@@ -354,7 +354,7 @@
     "id": "Q040",
     "category": "composition",
     "language": "he",
-    "question": "מה הייתה הרמה המרבית המותרת של המזהם במועד היבוא המתוכנן?",
+    "question": "מהי רמת הייחוס לאקרילאמיד החלה על חטיפי תפוחי אדמה המיובאים לישראל ביום 1 בפברואר 2028?",
     "expected_source_type": "adopted_provision_and_amendments",
     "risk_level": "high",
     "notes": "Effective-date filtering"
@@ -381,10 +381,10 @@
     "id": "Q043",
     "category": "operations",
     "language": "he",
-    "question": "אילו מסמכים חסרים בבקשתי לאישור מזון רגיש?",
+    "question": "יבואן הגיש בקשה לאישור מזון רגיש וצירף תווית ומפרט מוצר בלבד. אילו מסמכים נוספים נדרשים כדי להשלים את הבקשה?",
     "expected_source_type": "procedure_and_user_documents",
     "risk_level": "high",
-    "notes": "Case-specific gap analysis"
+    "notes": "Case-specific gap analysis with the supplied document list"
   },
   {
     "id": "Q044",
@@ -435,10 +435,10 @@
     "id": "Q049",
     "category": "temporal_conflict",
     "language": "he",
-    "question": "מהו מועד תחילתה של ההוראה האירופית שאומצה בישראל וחלה על מוצר זה?",
+    "question": "מהו מועד התחילה בישראל של תקנת האיחוד האירופי 2017/2158 בעניין אקרילאמיד, לגבי חטיפי תפוחי אדמה מיובאים?",
     "expected_source_type": "adoption_instrument",
     "risk_level": "high",
-    "notes": "Effective-date evidence"
+    "notes": "Effective-date evidence for Regulation (EU) 2017/2158"
   },
   {
     "id": "Q050",

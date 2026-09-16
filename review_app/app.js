@@ -20,6 +20,7 @@ const LEGACY_OUTCOMES = {
   "נמצא מקור מתאים": "source_found",
   "לא נמצא מקור לאחר חיפוש": "source_not_found",
   "נדרש מקור מחוץ לאתר FCS": "requires_non_fcs_source",
+  "נדרש מקור מחוץ לפורטל שירות המזון הארצי": "requires_non_fcs_source",
   "לא ודאי": "uncertain",
 };
 const LEGACY_STATUSES = { "ממתין": "pending", "מאושר": "approved" };
@@ -32,20 +33,15 @@ const elements = {
   previousQuestion: document.querySelector("#previous-question"),
   nextQuestion: document.querySelector("#next-question"),
   questionNumber: document.querySelector("#question-number"),
-  riskBadge: document.querySelector("#risk-badge"),
   questionHeading: document.querySelector("#question-heading"),
   reviewOutcome: document.querySelector("#review-outcome"),
+  answerLabel: document.querySelector("#answer-label"),
   referenceAnswer: document.querySelector("#reference-answer"),
   reviewNotes: document.querySelector("#review-notes"),
   addSource: document.querySelector("#add-source"),
   sourcesList: document.querySelector("#sources-list"),
   questionErrors: document.querySelector("#question-errors"),
-  questionSaveState: document.querySelector("#question-save-state"),
   saveQuestion: document.querySelector("#save-question"),
-  openRecovery: document.querySelector("#open-recovery"),
-  recoveryDialog: document.querySelector("#recovery-dialog"),
-  closeRecovery: document.querySelector("#close-recovery"),
-  snapshotList: document.querySelector("#snapshot-list"),
   exportReview: document.querySelector("#export-review"),
   importReview: document.querySelector("#import-review"),
   globalMessage: document.querySelector("#global-message"),
@@ -200,34 +196,6 @@ async function createSnapshot(reason, questionId = null) {
   await pruneSnapshots();
 }
 
-async function readSnapshots() {
-  const database = await openSnapshotDatabase();
-  try {
-    return await new Promise((resolve, reject) => {
-      const transaction = database.transaction(SNAPSHOT_STORE, "readonly");
-      const request = transaction.objectStore(SNAPSHOT_STORE).getAll();
-      request.onsuccess = () => resolve(request.result.sort((left, right) => right.id - left.id));
-      request.onerror = () => reject(request.error ?? new Error("קריאת גרסאות השחזור נכשלה."));
-    });
-  } finally {
-    database.close();
-  }
-}
-
-async function readSnapshot(id) {
-  const database = await openSnapshotDatabase();
-  try {
-    return await new Promise((resolve, reject) => {
-      const transaction = database.transaction(SNAPSHOT_STORE, "readonly");
-      const request = transaction.objectStore(SNAPSHOT_STORE).get(id);
-      request.onsuccess = () => resolve(request.result ?? null);
-      request.onerror = () => reject(request.error ?? new Error("קריאת גרסת השחזור נכשלה."));
-    });
-  } finally {
-    database.close();
-  }
-}
-
 function saveState() {
   state.updatedAt = new Date().toISOString();
   try {
@@ -242,12 +210,6 @@ function saveState() {
   updateProgress();
 }
 
-function riskLabel(value) {
-  if (value === "high") return "סיכון גבוה";
-  if (value === "medium") return "סיכון בינוני";
-  return "סיכון נמוך";
-}
-
 function updateProgress() {
   const reviews = questions.map((question) => state.reviews[question.id]);
   const reviewed = reviews.filter((review) => review.outcome !== "not_reviewed").length;
@@ -260,15 +222,6 @@ function updateProgress() {
     const marker = review.status === "approved" ? "✓" : review.outcome !== "not_reviewed" ? "•" : "";
     option.textContent = `${marker} שאלה ${index + 1}`.trim();
   });
-}
-
-function updateQuestionSaveState() {
-  const review = questions.length ? currentReview() : null;
-  const isApproved = review?.status === "approved";
-  elements.questionSaveState.textContent = isApproved
-    ? "השאלה נבדקה, נשמרה ואושרה."
-    : "הטיוטה נשמרת אוטומטית. לחיצה על הכפתור תבדוק ותאשר את השאלה.";
-  elements.saveQuestion.textContent = isApproved ? "שמירה מחדש" : "שמירת השאלה";
 }
 
 function createLabeledInput(labelText, type, value, field, sourceIndex, className = "") {
@@ -305,10 +258,10 @@ function renderSources(review) {
     const grid = document.createElement("div");
     grid.className = "source-grid";
     grid.append(
-      createLabeledInput("שם המסמך בדיוק כפי שהוא מופיע ב-FCS", "text", source.title, "title", index, "wide"),
+      createLabeledInput("שם המסמך כפי שהוא מופיע בפורטל שירות המזון הארצי", "text", source.title, "title", index, "wide"),
       createLabeledInput("עמודים רלוונטיים", "text", source.pages, "pages", index),
       createLabeledInput("תאריך פרסום או עדכון", "date", source.date, "date", index),
-      createLabeledInput("כתובת FCS", "url", source.url, "url", index, "wide"),
+      createLabeledInput("כתובת המקור בפורטל שירות המזון הארצי", "url", source.url, "url", index, "wide"),
       createLabeledInput("הערות למקור", "textarea", source.notes, "notes", index),
     );
     card.append(heading, remove, grid);
@@ -323,15 +276,14 @@ function render() {
   elements.previousQuestion.disabled = activeIndex === 0;
   elements.nextQuestion.disabled = activeIndex === questions.length - 1;
   elements.questionNumber.textContent = `שאלה ${activeIndex + 1} מתוך ${questions.length}`;
-  elements.riskBadge.textContent = riskLabel(question.risk_level);
   elements.questionHeading.textContent = question.question;
   elements.reviewOutcome.value = review.outcome;
+  elements.answerLabel.textContent = `תשובה לשאלה ${activeIndex + 1}`;
   elements.referenceAnswer.value = review.answer;
   elements.reviewNotes.value = review.notes;
   renderSources(review);
   showQuestionErrors([]);
   updateProgress();
-  updateQuestionSaveState();
 }
 
 function isValidFcsUrl(value) {
@@ -353,7 +305,7 @@ function validateQuestion(question, review) {
     const sourceNumber = index + 1;
     if (!source.title.trim()) errors.push(`מקור ${sourceNumber}: חסר שם מסמך.`);
     if (!source.pages.trim()) errors.push(`מקור ${sourceNumber}: חסרים עמודים רלוונטיים.`);
-    if (!isValidFcsUrl(source.url)) errors.push(`מקור ${sourceNumber}: כתובת המקור חייבת להיות HTTPS באתר fcs.health.gov.il.`);
+    if (!isValidFcsUrl(source.url)) errors.push(`מקור ${sourceNumber}: כתובת המקור חייבת להיות כתובת HTTPS בפורטל שירות המזון הארצי.`);
     const duplicateKey = `${source.title.trim().toLocaleLowerCase("he")}|${source.date}`;
     if (source.title.trim() && seenSources.has(duplicateKey)) {
       errors.push(`מקור ${sourceNumber}: נראה שמדובר במקור כפול.`);
@@ -362,15 +314,15 @@ function validateQuestion(question, review) {
   });
 
   if (review.status === "approved") {
-    if (!review.answer.trim()) errors.push("שאלה מאושרת חייבת לכלול תשובת ייחוס בעברית.");
+    if (!review.answer.trim()) errors.push("יש לכתוב תשובה קצרה לשאלה.");
     if (review.outcome === "source_found" && completedSources.length === 0) {
       errors.push("שאלה עם מקור מתאים חייבת לכלול לפחות מקור אחד.");
     }
     if (review.outcome === "requires_non_fcs_source" && completedSources.length > 0) {
-      errors.push("שאלה שמחייבת מקור מחוץ ל-FCS אינה יכולה לכלול מקור FCS שאושר כתשובה.");
+      errors.push("שאלה שמחייבת מקור מחוץ לפורטל שירות המזון הארצי אינה יכולה לכלול מקור מן הפורטל שאושר כתשובה.");
     }
     if (["not_reviewed", "source_not_found", "uncertain"].includes(review.outcome)) {
-      errors.push("לא ניתן לאשר שאלה עם תוצאת הבדיקה שנבחרה.");
+      errors.push("לא ניתן לשמור ולאשר את השאלה עם הבחירה הנוכחית.");
     }
   }
 
@@ -403,7 +355,6 @@ function updateCurrentReview(field, value) {
   review[field] = value;
   review.status = "pending";
   saveState();
-  updateQuestionSaveState();
 }
 
 async function saveCurrentQuestion() {
@@ -416,7 +367,6 @@ async function saveCurrentQuestion() {
   if (errors.length) {
     review.status = "pending";
     saveState();
-    updateQuestionSaveState();
     showQuestionErrors(errors);
     elements.questionErrors.scrollIntoView({ behavior: "smooth", block: "center" });
     elements.saveQuestion.disabled = false;
@@ -425,83 +375,13 @@ async function saveCurrentQuestion() {
 
   showQuestionErrors([]);
   saveState();
-  updateQuestionSaveState();
   try {
     await createSnapshot("question_saved", question.id);
-    showGlobal(`שאלה ${activeIndex + 1} נבדקה ונשמרה. נוצרה גם גרסת שחזור.`);
+    showGlobal(`שאלה ${activeIndex + 1} נבדקה ונשמרה.`);
   } catch (error) {
-    showGlobal(`השאלה נשמרה ואושרה, אך יצירת גרסת השחזור נכשלה: ${error.message}`, "error");
+    showGlobal(`השאלה נשמרה, אך השמירה המקומית הנוספת נכשלה: ${error.message}`, "error");
   } finally {
     elements.saveQuestion.disabled = false;
-  }
-}
-
-function snapshotReasonLabel(snapshot) {
-  if (snapshot.reason === "question_saved" && snapshot.questionId) {
-    const questionNumber = Number(String(snapshot.questionId).replace(/\D/g, ""));
-    return `לאחר שמירת שאלה ${questionNumber || snapshot.questionId}`;
-  }
-  if (snapshot.reason === "import") return "לאחר ייבוא קובץ תוצאות";
-  if (snapshot.reason === "before_restore") return "לפני שחזור גרסה אחרת";
-  return "גרסה שמורה";
-}
-
-function renderSnapshotList(snapshots) {
-  elements.snapshotList.replaceChildren();
-  if (!snapshots.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty-snapshots";
-    empty.textContent = "עדיין אין גרסאות שחזור. גרסה תיווצר לאחר שמירת שאלה.";
-    elements.snapshotList.append(empty);
-    return;
-  }
-
-  snapshots.forEach((snapshot) => {
-    const item = document.createElement("article");
-    item.className = "snapshot-item";
-    const copy = document.createElement("div");
-    const heading = document.createElement("strong");
-    heading.textContent = new Date(snapshot.createdAt).toLocaleString("he-IL", {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
-    const details = document.createElement("span");
-    details.textContent = `${snapshotReasonLabel(snapshot)} · ${snapshot.reviewedCount} נבדקו · ${snapshot.approvedCount} נשמרו`;
-    copy.append(heading, details);
-
-    const restore = document.createElement("button");
-    restore.type = "button";
-    restore.className = "button secondary";
-    restore.textContent = "שחזור גרסה זו";
-    restore.dataset.restoreSnapshot = String(snapshot.id);
-    item.append(copy, restore);
-    elements.snapshotList.append(item);
-  });
-}
-
-async function openRecoveryDialog() {
-  try {
-    renderSnapshotList(await readSnapshots());
-    elements.recoveryDialog.showModal();
-  } catch (error) {
-    showGlobal(`לא ניתן לפתוח את גרסאות השחזור: ${error.message}`, "error");
-  }
-}
-
-async function restoreSnapshot(id) {
-  try {
-    const snapshot = await readSnapshot(id);
-    if (!snapshot) throw new Error("גרסת השחזור שנבחרה אינה קיימת.");
-    await createSnapshot("before_restore");
-    initializeState(snapshot.state);
-    const restoredIndex = questions.findIndex((question) => question.id === snapshot.activeQuestionId);
-    activeIndex = restoredIndex >= 0 ? restoredIndex : 0;
-    saveState();
-    render();
-    elements.recoveryDialog.close();
-    showGlobal("הגרסה שוחזרה. המצב שהיה לפני השחזור נשמר כגרסת שחזור נוספת.");
-  } catch (error) {
-    showGlobal(`שחזור הגרסה נכשל: ${error.message}`, "error");
   }
 }
 
@@ -606,9 +486,9 @@ async function importReview(file) {
     render();
     try {
       await createSnapshot("import");
-      showGlobal("קובץ התוצאות יובא בהצלחה ונוצרה גרסת שחזור.");
+      showGlobal("קובץ התוצאות יובא בהצלחה.");
     } catch (snapshotError) {
-      showGlobal(`קובץ התוצאות יובא, אך יצירת גרסת השחזור נכשלה: ${snapshotError.message}`, "error");
+      showGlobal(`קובץ התוצאות יובא, אך השמירה המקומית הנוספת נכשלה: ${snapshotError.message}`, "error");
     }
   } catch (error) {
     showGlobal(`ייבוא קובץ התוצאות נכשל: ${error.message}`, "error");
@@ -629,7 +509,6 @@ function bindEvents() {
     review.sources.push(blankSource());
     review.status = "pending";
     saveState();
-    updateQuestionSaveState();
     renderSources(currentReview());
     elements.sourcesList.lastElementChild?.querySelector("input")?.focus();
   });
@@ -641,7 +520,6 @@ function bindEvents() {
     review.sources[index][input.dataset.sourceField] = input.value;
     review.status = "pending";
     saveState();
-    updateQuestionSaveState();
   });
   elements.sourcesList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-remove-source]");
@@ -652,19 +530,9 @@ function bindEvents() {
     else sources.splice(index, 1);
     currentReview().status = "pending";
     saveState();
-    updateQuestionSaveState();
     renderSources(currentReview());
   });
   elements.saveQuestion.addEventListener("click", saveCurrentQuestion);
-  elements.openRecovery.addEventListener("click", openRecoveryDialog);
-  elements.closeRecovery.addEventListener("click", () => elements.recoveryDialog.close());
-  elements.snapshotList.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-restore-snapshot]");
-    if (!button || button.disabled) return;
-    button.disabled = true;
-    await restoreSnapshot(Number(button.dataset.restoreSnapshot));
-    button.disabled = false;
-  });
   elements.exportReview.addEventListener("click", exportReview);
   elements.importReview.addEventListener("change", () => {
     const file = elements.importReview.files?.[0];

@@ -11,15 +11,15 @@ published through GitHub Pages. It presents one question at a time, supports an
 arbitrary number of source records per question, and automatically saves drafts
 locally in the browser. The reviewer saves each completed question with a
 dedicated button; that action validates the current question, assigns the
-internal `approved` status, and creates a recoverable IndexedDB snapshot.
+internal `approved` status, and creates an IndexedDB snapshot.
 Editing an approved question returns it to `pending` until it passes validation
 again.
 
-The recovery view retains the 20 newest full-state snapshots from successful
-question saves and imports. Restoring an older version first snapshots the
-current state, making the restore reversible. `localStorage` drafts and
-IndexedDB snapshots are both confined to the current browser profile and device
-and are not a remote backup.
+The app retains the 20 newest full-state snapshots from successful question
+saves and imports, but the streamlined reviewer interface does not expose a
+snapshot recovery control. `localStorage` drafts and IndexedDB snapshots are
+both confined to the current browser profile and device and are not a remote
+backup.
 
 The expert returns one results file: `eval_relevance_expert.json`. It is the
 required transfer mechanism and canonical review handoff. Its structure uses:

@@ -77,7 +77,7 @@
     },
     {
       "question_id": "Q009",
-      "question_text_he": "האם מסלול היבוא האירופי חל על מוצר זה ועל היבואן?",
+      "question_text_he": "אילו תנאים חייבים להתקיים כדי שמוצר פסטה עמיד במדף, המיוצר ומשווק כדין באיטליה, ייובא לישראל במסלול היבוא האירופי בידי יבואן רשום?",
       "outcome": "not_reviewed",
       "review_status": "pending",
       "reference_answer_he": "",
@@ -266,7 +266,7 @@
     },
     {
       "question_id": "Q030",
-      "question_text_he": "איזה משטר סימון חל על אותו מוצר לאחר 1 בינואר 2028?",
+      "question_text_he": "איזה משטר סימון תזונתי חל על מוצר מזון המשווק בישראל החל מ-1 בינואר 2028?",
       "outcome": "not_reviewed",
       "review_status": "pending",
       "reference_answer_he": "",
@@ -284,7 +284,7 @@
     },
     {
       "question_id": "Q032",
-      "question_text_he": "האם מוצר זה חייב בסמלי אזהרה אדומים בחזית האריזה?",
+      "question_text_he": "ביסקוויט מיובא מכיל, ל-100 גרם, 15 גרם סוכרים, 700 מ״ג נתרן ו-6 גרם שומן רווי. אילו סמלי אזהרה אדומים נדרשים בחזית האריזה?",
       "outcome": "not_reviewed",
       "review_status": "pending",
       "reference_answer_he": "",
@@ -320,7 +320,7 @@
     },
     {
       "question_id": "Q036",
-      "question_text_he": "אילו הוראות מאומצות חלות על מזהמים בסוג מזון זה?",
+      "question_text_he": "אילו הוראות מאומצות חלות על אקרילאמיד בחטיפי תפוחי אדמה מיובאים?",
       "outcome": "not_reviewed",
       "review_status": "pending",
       "reference_answer_he": "",
@@ -356,7 +356,7 @@
     },
     {
       "question_id": "Q040",
-      "question_text_he": "מה הייתה הרמה המרבית המותרת של המזהם במועד היבוא המתוכנן?",
+      "question_text_he": "מהי רמת הייחוס לאקרילאמיד החלה על חטיפי תפוחי אדמה המיובאים לישראל ביום 1 בפברואר 2028?",
       "outcome": "not_reviewed",
       "review_status": "pending",
       "reference_answer_he": "",
@@ -383,7 +383,7 @@
     },
     {
       "question_id": "Q043",
-      "question_text_he": "אילו מסמכים חסרים בבקשתי לאישור מזון רגיש?",
+      "question_text_he": "יבואן הגיש בקשה לאישור מזון רגיש וצירף תווית ומפרט מוצר בלבד. אילו מסמכים נוספים נדרשים כדי להשלים את הבקשה?",
       "outcome": "not_reviewed",
       "review_status": "pending",
       "reference_answer_he": "",
@@ -437,7 +437,7 @@
     },
     {
       "question_id": "Q049",
-      "question_text_he": "מהו מועד תחילתה של ההוראה האירופית שאומצה בישראל וחלה על מוצר זה?",
+      "question_text_he": "מהו מועד התחילה בישראל של תקנת האיחוד האירופי 2017/2158 בעניין אקרילאמיד, לגבי חטיפי תפוחי אדמה מיובאים?",
       "outcome": "not_reviewed",
       "review_status": "pending",
       "reference_answer_he": "",

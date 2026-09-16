@@ -98,8 +98,7 @@ textarea:focus-visible {
   color: #d8f3f7;
 }
 
-main,
-footer {
+main {
   width: min(1120px, calc(100% - 2rem));
   margin-inline: auto;
 }
@@ -124,15 +123,21 @@ main {
   background: var(--warning-bg);
 }
 
-.notice h2,
-.notice p,
-.actions-panel h2,
-.actions-panel p {
+.notice h2 {
   margin: 0;
 }
 
 .notice h2 {
   font-size: 1rem;
+}
+
+.notice ol {
+  margin: 0.65rem 0 0;
+  padding-inline-start: 1.4rem;
+}
+
+.notice li + li {
+  margin-top: 0.3rem;
 }
 
 .progress-panel {
@@ -207,8 +212,7 @@ textarea {
   gap: 0.75rem;
 }
 
-.question-number,
-.risk-badge {
+.question-number {
   display: inline-flex;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
@@ -219,11 +223,6 @@ textarea {
 .question-number {
   background: var(--brand-pale);
   color: var(--brand-dark);
-}
-
-.risk-badge {
-  background: #f1f3f4;
-  color: var(--muted);
 }
 
 #question-heading {
@@ -355,15 +354,11 @@ textarea {
 .question-save-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1.25rem;
   border-top: 2px solid var(--border);
-}
-
-#question-save-state {
-  color: var(--muted);
 }
 
 .actions-panel {
@@ -375,7 +370,7 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .file-button input {
@@ -394,71 +389,11 @@ textarea {
   color: var(--danger);
 }
 
-dialog {
-  width: min(760px, calc(100% - 2rem));
-  max-height: min(80vh, 760px);
-  border: 1px solid var(--border);
-  border-radius: 0.85rem;
-  box-shadow: 0 24px 70px rgb(23 50 59 / 28%);
-  color: var(--ink);
-  padding: 1.25rem;
-}
-
-dialog::backdrop {
-  background: rgb(23 50 59 / 55%);
-}
-
-.dialog-heading,
-.snapshot-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.dialog-heading h2,
-.dialog-heading p,
-.empty-snapshots {
-  margin: 0;
-}
-
-.dialog-heading p,
-.snapshot-item span {
-  color: var(--muted);
-}
-
-.snapshot-list {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
-  overflow-y: auto;
-}
-
-.snapshot-item {
-  padding: 0.85rem;
-  border: 1px solid var(--border);
-  border-radius: 0.65rem;
-  background: var(--surface-soft);
-}
-
-.snapshot-item strong,
-.snapshot-item span {
-  display: block;
-}
-
-footer {
-  padding-block: 0 2.5rem;
-  color: var(--muted);
-  text-align: center;
-}
-
 @media (max-width: 760px) {
   .site-header,
   .sources-heading,
   .progress-copy,
-  .question-save-row,
-  .dialog-heading,
-  .snapshot-item {
+  .question-save-row {
     align-items: stretch;
     flex-direction: column;
   }

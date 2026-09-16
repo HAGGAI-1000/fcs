@@ -6,22 +6,22 @@ review of the 50 Hebrew evaluation questions.
 ## Reviewer workflow
 
 1. Open the published application.
-2. Search the FCS website independently for each question.
+2. Search the National Food Service portal independently for each question.
 3. Record the outcome, Hebrew reference answer, and any number of supporting
    source rows.
 4. Press the save button at the bottom of the question. The app validates that
-   question, marks it approved, and stores a recoverable IndexedDB snapshot.
+   question, marks it approved, and stores an IndexedDB snapshot.
    Editing an approved question returns it to draft status until it is saved
    again.
 5. At completion, export and return the single results file,
    `eval_relevance_expert.json`.
 
 Every edit is also saved automatically to `localStorage`, so an unfinished
-draft survives navigation and browser restarts. The recovery dialog lists up to
-20 full-state snapshots created by successful question saves and imports. A
-pre-restore snapshot is created before any older version is restored. Both the
-draft and snapshots remain local to the current browser profile and device and
-can be removed by clearing site data.
+draft survives navigation and browser restarts. Up to 20 background snapshots
+are retained after successful question saves and imports. The streamlined
+reviewer interface does not expose snapshot recovery controls. The draft and
+snapshots remain local to the current browser profile and device and can be
+removed by clearing site data.
 
 The exported results file is the required transfer and handoff mechanism for
 another browser, device, or the evaluation pipeline. It is not described as an
