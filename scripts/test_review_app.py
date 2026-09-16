@@ -34,6 +34,8 @@ class ReviewAppTests(unittest.TestCase):
         self.assertIn('id="recovery-dialog"', html)
         self.assertIn('id="export-review"', html)
         self.assertIn('id="import-review"', html)
+        self.assertIn('href="styles.css?v=3"', html)
+        self.assertIn('src="app.js?v=3"', html)
         self.assertNotIn('id="review-status"', html)
         self.assertNotIn('id="validate-all"', html)
         self.assertNotIn('id="reset-all"', html)
