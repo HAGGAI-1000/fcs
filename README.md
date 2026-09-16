@@ -220,12 +220,16 @@ created. See
 ## Expert-review web application
 
 The static application under `review_app/` provides a Hebrew RTL interface for
-the independent domain review. It saves drafts only in the reviewer's browser,
-allows sources to be added or removed interactively, validates approval rules
-and FCS URLs, and exports one English-keyed JSON file consumed by
+the independent domain review. It automatically saves drafts in `localStorage`,
+keeps up to 20 recoverable IndexedDB snapshots, allows sources to be added or
+removed interactively, and validates approval rules and FCS URLs whenever a
+question is explicitly saved. Editing a saved question returns it to draft
+status. The app exports one English-keyed JSON results file consumed by
 `scripts/import_expert_relevance.py`. Sources are nested under compact question
-IDs, eliminating the duplicated question/source CSV rows. The same JSON file is
-the portable backup and can be restored in another browser or device.
+IDs, eliminating the duplicated question/source CSV rows. That results file is
+the required transfer and handoff mechanism for another browser or device;
+browser drafts and snapshots remain local and can be lost if site data is
+cleared.
 
 GitHub Pages deployment is defined in `.github/workflows/pages.yml`. The
 workflow verifies that `review_app/questions.json` exactly matches the canonical

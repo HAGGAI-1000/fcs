@@ -3,6 +3,10 @@
 const STORAGE_KEY = "fcs-expert-review-v2";
 const LEGACY_STORAGE_KEY = "fcs-expert-review-v1";
 const REVIEW_VERSION = 2;
+const SNAPSHOT_DB_NAME = "fcs-expert-review";
+const SNAPSHOT_DB_VERSION = 1;
+const SNAPSHOT_STORE = "snapshots";
+const SNAPSHOT_LIMIT = 20;
 const OUTCOMES = new Set([
   "not_reviewed",
   "source_found",
@@ -31,16 +35,19 @@ const elements = {
   riskBadge: document.querySelector("#risk-badge"),
   questionHeading: document.querySelector("#question-heading"),
   reviewOutcome: document.querySelector("#review-outcome"),
-  reviewStatus: document.querySelector("#review-status"),
   referenceAnswer: document.querySelector("#reference-answer"),
   reviewNotes: document.querySelector("#review-notes"),
   addSource: document.querySelector("#add-source"),
   sourcesList: document.querySelector("#sources-list"),
   questionErrors: document.querySelector("#question-errors"),
-  validateAll: document.querySelector("#validate-all"),
+  questionSaveState: document.querySelector("#question-save-state"),
+  saveQuestion: document.querySelector("#save-question"),
+  openRecovery: document.querySelector("#open-recovery"),
+  recoveryDialog: document.querySelector("#recovery-dialog"),
+  closeRecovery: document.querySelector("#close-recovery"),
+  snapshotList: document.querySelector("#snapshot-list"),
   exportReview: document.querySelector("#export-review"),
   importReview: document.querySelector("#import-review"),
-  resetAll: document.querySelector("#reset-all"),
   globalMessage: document.querySelector("#global-message"),
 };
 
@@ -125,6 +132,102 @@ function loadState() {
   }
 }
 
+function openSnapshotDatabase() {
+  return new Promise((resolve, reject) => {
+    if (!("indexedDB" in window)) {
+      reject(new Error("הדפדפן אינו תומך בגרסאות שחזור מקומיות."));
+      return;
+    }
+    const request = indexedDB.open(SNAPSHOT_DB_NAME, SNAPSHOT_DB_VERSION);
+    request.onupgradeneeded = () => {
+      const database = request.result;
+      if (!database.objectStoreNames.contains(SNAPSHOT_STORE)) {
+        const store = database.createObjectStore(SNAPSHOT_STORE, { keyPath: "id", autoIncrement: true });
+        store.createIndex("createdAt", "createdAt");
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error("פתיחת מאגר גרסאות השחזור נכשלה."));
+  });
+}
+
+function cloneState() {
+  return JSON.parse(JSON.stringify(state));
+}
+
+async function pruneSnapshots() {
+  const database = await openSnapshotDatabase();
+  try {
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction(SNAPSHOT_STORE, "readwrite");
+      const store = transaction.objectStore(SNAPSHOT_STORE);
+      const request = store.getAllKeys();
+      request.onsuccess = () => {
+        const excess = Math.max(0, request.result.length - SNAPSHOT_LIMIT);
+        request.result.slice(0, excess).forEach((key) => store.delete(key));
+      };
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error("מחיקת גרסאות ישנות נכשלה."));
+      transaction.onabort = () => reject(transaction.error ?? new Error("מחיקת גרסאות ישנות בוטלה."));
+    });
+  } finally {
+    database.close();
+  }
+}
+
+async function createSnapshot(reason, questionId = null) {
+  const reviews = questions.map((question) => state.reviews[question.id]);
+  const database = await openSnapshotDatabase();
+  try {
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction(SNAPSHOT_STORE, "readwrite");
+      transaction.objectStore(SNAPSHOT_STORE).add({
+        createdAt: new Date().toISOString(),
+        reason,
+        questionId,
+        activeQuestionId: currentQuestion()?.id ?? null,
+        approvedCount: reviews.filter((review) => review.status === "approved").length,
+        reviewedCount: reviews.filter((review) => review.outcome !== "not_reviewed").length,
+        state: cloneState(),
+      });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error("יצירת גרסת השחזור נכשלה."));
+      transaction.onabort = () => reject(transaction.error ?? new Error("יצירת גרסת השחזור בוטלה."));
+    });
+  } finally {
+    database.close();
+  }
+  await pruneSnapshots();
+}
+
+async function readSnapshots() {
+  const database = await openSnapshotDatabase();
+  try {
+    return await new Promise((resolve, reject) => {
+      const transaction = database.transaction(SNAPSHOT_STORE, "readonly");
+      const request = transaction.objectStore(SNAPSHOT_STORE).getAll();
+      request.onsuccess = () => resolve(request.result.sort((left, right) => right.id - left.id));
+      request.onerror = () => reject(request.error ?? new Error("קריאת גרסאות השחזור נכשלה."));
+    });
+  } finally {
+    database.close();
+  }
+}
+
+async function readSnapshot(id) {
+  const database = await openSnapshotDatabase();
+  try {
+    return await new Promise((resolve, reject) => {
+      const transaction = database.transaction(SNAPSHOT_STORE, "readonly");
+      const request = transaction.objectStore(SNAPSHOT_STORE).get(id);
+      request.onsuccess = () => resolve(request.result ?? null);
+      request.onerror = () => reject(request.error ?? new Error("קריאת גרסת השחזור נכשלה."));
+    });
+  } finally {
+    database.close();
+  }
+}
+
 function saveState() {
   state.updatedAt = new Date().toISOString();
   try {
@@ -134,7 +237,7 @@ function saveState() {
       minute: "2-digit",
     })}`;
   } catch (_error) {
-    elements.saveStatus.textContent = "השמירה המקומית נכשלה — יש לייצא גיבוי JSON";
+    elements.saveStatus.textContent = "השמירה האוטומטית בדפדפן נכשלה";
   }
   updateProgress();
 }
@@ -157,6 +260,15 @@ function updateProgress() {
     const marker = review.status === "approved" ? "✓" : review.outcome !== "not_reviewed" ? "•" : "";
     option.textContent = `${marker} שאלה ${index + 1}`.trim();
   });
+}
+
+function updateQuestionSaveState() {
+  const review = questions.length ? currentReview() : null;
+  const isApproved = review?.status === "approved";
+  elements.questionSaveState.textContent = isApproved
+    ? "השאלה נבדקה, נשמרה ואושרה."
+    : "הטיוטה נשמרת אוטומטית. לחיצה על הכפתור תבדוק ותאשר את השאלה.";
+  elements.saveQuestion.textContent = isApproved ? "שמירה מחדש" : "שמירת השאלה";
 }
 
 function createLabeledInput(labelText, type, value, field, sourceIndex, className = "") {
@@ -214,12 +326,12 @@ function render() {
   elements.riskBadge.textContent = riskLabel(question.risk_level);
   elements.questionHeading.textContent = question.question;
   elements.reviewOutcome.value = review.outcome;
-  elements.reviewStatus.value = review.status;
   elements.referenceAnswer.value = review.answer;
   elements.reviewNotes.value = review.notes;
   renderSources(review);
   showQuestionErrors([]);
   updateProgress();
+  updateQuestionSaveState();
 }
 
 function isValidFcsUrl(value) {
@@ -262,7 +374,8 @@ function validateQuestion(question, review) {
     }
   }
 
-  return errors.map((message) => `שאלה ${question.id.slice(1)}: ${message}`);
+  const questionNumber = Number(String(question.id).replace(/\D/g, "")) || question.id;
+  return errors.map((message) => `שאלה ${questionNumber}: ${message}`);
 }
 
 function showQuestionErrors(errors) {
@@ -286,8 +399,110 @@ function changeQuestion(index) {
 }
 
 function updateCurrentReview(field, value) {
-  currentReview()[field] = value;
+  const review = currentReview();
+  review[field] = value;
+  review.status = "pending";
   saveState();
+  updateQuestionSaveState();
+}
+
+async function saveCurrentQuestion() {
+  if (elements.saveQuestion.disabled) return;
+  elements.saveQuestion.disabled = true;
+  const question = currentQuestion();
+  const review = currentReview();
+  review.status = "approved";
+  const errors = validateQuestion(question, review);
+  if (errors.length) {
+    review.status = "pending";
+    saveState();
+    updateQuestionSaveState();
+    showQuestionErrors(errors);
+    elements.questionErrors.scrollIntoView({ behavior: "smooth", block: "center" });
+    elements.saveQuestion.disabled = false;
+    return;
+  }
+
+  showQuestionErrors([]);
+  saveState();
+  updateQuestionSaveState();
+  try {
+    await createSnapshot("question_saved", question.id);
+    showGlobal(`שאלה ${activeIndex + 1} נבדקה ונשמרה. נוצרה גם גרסת שחזור.`);
+  } catch (error) {
+    showGlobal(`השאלה נשמרה ואושרה, אך יצירת גרסת השחזור נכשלה: ${error.message}`, "error");
+  } finally {
+    elements.saveQuestion.disabled = false;
+  }
+}
+
+function snapshotReasonLabel(snapshot) {
+  if (snapshot.reason === "question_saved" && snapshot.questionId) {
+    const questionNumber = Number(String(snapshot.questionId).replace(/\D/g, ""));
+    return `לאחר שמירת שאלה ${questionNumber || snapshot.questionId}`;
+  }
+  if (snapshot.reason === "import") return "לאחר ייבוא קובץ תוצאות";
+  if (snapshot.reason === "before_restore") return "לפני שחזור גרסה אחרת";
+  return "גרסה שמורה";
+}
+
+function renderSnapshotList(snapshots) {
+  elements.snapshotList.replaceChildren();
+  if (!snapshots.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-snapshots";
+    empty.textContent = "עדיין אין גרסאות שחזור. גרסה תיווצר לאחר שמירת שאלה.";
+    elements.snapshotList.append(empty);
+    return;
+  }
+
+  snapshots.forEach((snapshot) => {
+    const item = document.createElement("article");
+    item.className = "snapshot-item";
+    const copy = document.createElement("div");
+    const heading = document.createElement("strong");
+    heading.textContent = new Date(snapshot.createdAt).toLocaleString("he-IL", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+    const details = document.createElement("span");
+    details.textContent = `${snapshotReasonLabel(snapshot)} · ${snapshot.reviewedCount} נבדקו · ${snapshot.approvedCount} נשמרו`;
+    copy.append(heading, details);
+
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.className = "button secondary";
+    restore.textContent = "שחזור גרסה זו";
+    restore.dataset.restoreSnapshot = String(snapshot.id);
+    item.append(copy, restore);
+    elements.snapshotList.append(item);
+  });
+}
+
+async function openRecoveryDialog() {
+  try {
+    renderSnapshotList(await readSnapshots());
+    elements.recoveryDialog.showModal();
+  } catch (error) {
+    showGlobal(`לא ניתן לפתוח את גרסאות השחזור: ${error.message}`, "error");
+  }
+}
+
+async function restoreSnapshot(id) {
+  try {
+    const snapshot = await readSnapshot(id);
+    if (!snapshot) throw new Error("גרסת השחזור שנבחרה אינה קיימת.");
+    await createSnapshot("before_restore");
+    initializeState(snapshot.state);
+    const restoredIndex = questions.findIndex((question) => question.id === snapshot.activeQuestionId);
+    activeIndex = restoredIndex >= 0 ? restoredIndex : 0;
+    saveState();
+    render();
+    elements.recoveryDialog.close();
+    showGlobal("הגרסה שוחזרה. המצב שהיה לפני השחזור נשמר כגרסת שחזור נוספת.");
+  } catch (error) {
+    showGlobal(`שחזור הגרסה נכשל: ${error.message}`, "error");
+  }
 }
 
 function download(name, content, type) {
@@ -346,7 +561,7 @@ function exportReview() {
     `${JSON.stringify(canonicalReview(), null, 2)}\n`,
     "application/json;charset=utf-8",
   );
-  showGlobal("קובץ ה-JSON יוצא בהצלחה.");
+  showGlobal("קובץ התוצאות יוצא בהצלחה.");
 }
 
 function stateFromCanonical(parsed) {
@@ -389,9 +604,14 @@ async function importReview(file) {
     saveState();
     activeIndex = 0;
     render();
-    showGlobal("קובץ ה-JSON יובא בהצלחה.");
+    try {
+      await createSnapshot("import");
+      showGlobal("קובץ התוצאות יובא בהצלחה ונוצרה גרסת שחזור.");
+    } catch (snapshotError) {
+      showGlobal(`קובץ התוצאות יובא, אך יצירת גרסת השחזור נכשלה: ${snapshotError.message}`, "error");
+    }
   } catch (error) {
-    showGlobal(`ייבוא קובץ ה-JSON נכשל: ${error.message}`, "error");
+    showGlobal(`ייבוא קובץ התוצאות נכשל: ${error.message}`, "error");
   } finally {
     elements.importReview.value = "";
   }
@@ -402,25 +622,14 @@ function bindEvents() {
   elements.previousQuestion.addEventListener("click", () => changeQuestion(activeIndex - 1));
   elements.nextQuestion.addEventListener("click", () => changeQuestion(activeIndex + 1));
   elements.reviewOutcome.addEventListener("change", () => updateCurrentReview("outcome", elements.reviewOutcome.value));
-  elements.reviewStatus.addEventListener("change", () => {
-    const review = currentReview();
-    const previous = review.status;
-    review.status = elements.reviewStatus.value;
-    const errors = validateQuestion(currentQuestion(), review);
-    if (review.status === "approved" && errors.length) {
-      review.status = previous;
-      elements.reviewStatus.value = previous;
-      showQuestionErrors(errors);
-      return;
-    }
-    showQuestionErrors([]);
-    saveState();
-  });
   elements.referenceAnswer.addEventListener("input", () => updateCurrentReview("answer", elements.referenceAnswer.value));
   elements.reviewNotes.addEventListener("input", () => updateCurrentReview("notes", elements.reviewNotes.value));
   elements.addSource.addEventListener("click", () => {
-    currentReview().sources.push(blankSource());
+    const review = currentReview();
+    review.sources.push(blankSource());
+    review.status = "pending";
     saveState();
+    updateQuestionSaveState();
     renderSources(currentReview());
     elements.sourcesList.lastElementChild?.querySelector("input")?.focus();
   });
@@ -428,8 +637,11 @@ function bindEvents() {
     const input = event.target.closest("[data-source-field]");
     if (!input) return;
     const index = Number(input.dataset.sourceIndex);
-    currentReview().sources[index][input.dataset.sourceField] = input.value;
+    const review = currentReview();
+    review.sources[index][input.dataset.sourceField] = input.value;
+    review.status = "pending";
     saveState();
+    updateQuestionSaveState();
   });
   elements.sourcesList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-remove-source]");
@@ -438,26 +650,25 @@ function bindEvents() {
     const sources = currentReview().sources;
     if (sources.length === 1) sources[0] = blankSource();
     else sources.splice(index, 1);
+    currentReview().status = "pending";
     saveState();
+    updateQuestionSaveState();
     renderSources(currentReview());
   });
-  elements.validateAll.addEventListener("click", () => {
-    const errors = validateAllReviews();
-    showGlobal(errors.length ? `${errors.length} בעיות נמצאו:\n${errors.slice(0, 10).join("\n")}` : "לא נמצאו בעיות מבניות.", errors.length ? "error" : "success");
+  elements.saveQuestion.addEventListener("click", saveCurrentQuestion);
+  elements.openRecovery.addEventListener("click", openRecoveryDialog);
+  elements.closeRecovery.addEventListener("click", () => elements.recoveryDialog.close());
+  elements.snapshotList.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-restore-snapshot]");
+    if (!button || button.disabled) return;
+    button.disabled = true;
+    await restoreSnapshot(Number(button.dataset.restoreSnapshot));
+    button.disabled = false;
   });
   elements.exportReview.addEventListener("click", exportReview);
   elements.importReview.addEventListener("change", () => {
     const file = elements.importReview.files?.[0];
     if (file) importReview(file);
-  });
-  elements.resetAll.addEventListener("click", () => {
-    if (!window.confirm("למחוק את כל הנתונים שנשמרו בדפדפן? לא ניתן לבטל פעולה זו.")) return;
-    localStorage.removeItem(STORAGE_KEY);
-    initializeState(null);
-    activeIndex = 0;
-    saveState();
-    render();
-    showGlobal("כל הנתונים אופסו.");
   });
 }
 

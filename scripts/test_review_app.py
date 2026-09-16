@@ -29,8 +29,14 @@ class ReviewAppTests(unittest.TestCase):
         html = (ROOT / "review_app" / "index.html").read_text(encoding="utf-8")
         self.assertIn('lang="he" dir="rtl"', html)
         self.assertIn('id="add-source"', html)
+        self.assertIn('id="save-question"', html)
+        self.assertIn('id="open-recovery"', html)
+        self.assertIn('id="recovery-dialog"', html)
         self.assertIn('id="export-review"', html)
         self.assertIn('id="import-review"', html)
+        self.assertNotIn('id="review-status"', html)
+        self.assertNotIn('id="validate-all"', html)
+        self.assertNotIn('id="reset-all"', html)
         self.assertNotIn('id="export-questions"', html)
         self.assertNotIn('id="export-sources"', html)
         self.assertNotIn("<form", html.lower())
@@ -55,7 +61,19 @@ class ReviewAppTests(unittest.TestCase):
             self.assertIn(field, script)
         self.assertIn('"eval_relevance_expert.json"', script)
         self.assertIn("localStorage", script)
+        self.assertIn("indexedDB", script)
+        self.assertIn('const SNAPSHOT_LIMIT = 20;', script)
+        self.assertIn('createSnapshot("question_saved"', script)
+        self.assertIn('createSnapshot("before_restore"', script)
         self.assertIn("fcs.health.gov.il", script)
+
+    def test_user_facing_result_file_terms_are_format_neutral(self) -> None:
+        html = (ROOT / "review_app" / "index.html").read_text(encoding="utf-8")
+        script = (ROOT / "review_app" / "app.js").read_text(encoding="utf-8")
+        self.assertIn("ייצוא קובץ תוצאות", html)
+        self.assertIn("ייבוא קובץ תוצאות", html)
+        self.assertNotIn("קובץ JSON", html)
+        self.assertNotIn("קובץ ה-JSON", script)
 
     def test_canonical_json_template_matches_questions(self) -> None:
         payload = json.loads(

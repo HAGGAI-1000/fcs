@@ -8,11 +8,21 @@ information, and is never asked to find or enter internal document GUIDs.
 
 The preferred interface is the static Hebrew application in `review_app/`,
 published through GitHub Pages. It presents one question at a time, supports an
-arbitrary number of source records per question, and saves drafts locally in
-the browser.
+arbitrary number of source records per question, and automatically saves drafts
+locally in the browser. The reviewer saves each completed question with a
+dedicated button; that action validates the current question, assigns the
+internal `approved` status, and creates a recoverable IndexedDB snapshot.
+Editing an approved question returns it to `pending` until it passes validation
+again.
 
-The expert returns one file: `eval_relevance_expert.json`. It is both the
-portable backup and the canonical review handoff. Its structure uses:
+The recovery view retains the 20 newest full-state snapshots from successful
+question saves and imports. Restoring an older version first snapshots the
+current state, making the restore reversible. `localStorage` drafts and
+IndexedDB snapshots are both confined to the current browser profile and device
+and are not a remote backup.
+
+The expert returns one results file: `eval_relevance_expert.json`. It is the
+required transfer mechanism and canonical review handoff. Its structure uses:
 
 - compact question IDs and English machine-field names;
 - Hebrew question and reference-answer text;
@@ -41,8 +51,8 @@ values shown in parentheses:
 
 Failure to find a source is not automatically an out-of-scope decision. Reviews
 marked `source_not_found` or `uncertain` must remain `pending` until adjudicated.
-A reviewer may set `review_status=approved` only when a source-backed answer is
-complete or when the need for evidence outside the FCS scope has itself been
+The save button sets `review_status=approved` only when a source-backed answer
+is complete or when the need for evidence outside the FCS scope has itself been
 established.
 
 ## Validating and using the returned JSON

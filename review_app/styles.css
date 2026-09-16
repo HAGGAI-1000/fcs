@@ -238,6 +238,10 @@ textarea {
   gap: 1rem;
 }
 
+.form-grid.single-column {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .full-width {
   display: block;
   margin-top: 1rem;
@@ -348,6 +352,20 @@ textarea {
   color: var(--danger);
 }
 
+.question-save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--border);
+}
+
+#question-save-state {
+  color: var(--muted);
+}
+
 .actions-panel {
   margin-top: 1rem;
   padding: 1.25rem;
@@ -376,6 +394,58 @@ textarea {
   color: var(--danger);
 }
 
+dialog {
+  width: min(760px, calc(100% - 2rem));
+  max-height: min(80vh, 760px);
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  box-shadow: 0 24px 70px rgb(23 50 59 / 28%);
+  color: var(--ink);
+  padding: 1.25rem;
+}
+
+dialog::backdrop {
+  background: rgb(23 50 59 / 55%);
+}
+
+.dialog-heading,
+.snapshot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dialog-heading h2,
+.dialog-heading p,
+.empty-snapshots {
+  margin: 0;
+}
+
+.dialog-heading p,
+.snapshot-item span {
+  color: var(--muted);
+}
+
+.snapshot-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  overflow-y: auto;
+}
+
+.snapshot-item {
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--surface-soft);
+}
+
+.snapshot-item strong,
+.snapshot-item span {
+  display: block;
+}
+
 footer {
   padding-block: 0 2.5rem;
   color: var(--muted);
@@ -385,7 +455,10 @@ footer {
 @media (max-width: 760px) {
   .site-header,
   .sources-heading,
-  .progress-copy {
+  .progress-copy,
+  .question-save-row,
+  .dialog-heading,
+  .snapshot-item {
     align-items: stretch;
     flex-direction: column;
   }
