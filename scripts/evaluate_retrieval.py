@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""Run all Hebrew evaluation questions and create a ground-truth review queue."""
+"""Run all Hebrew evaluation questions and score approved expert labels."""
 
 from __future__ import annotations
 
 import argparse
-import csv
+import hashlib
 import json
 import statistics
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from import_expert_relevance import convert_review
 from retrieval_common import atomic_jsonl
 from retrieval_engine import RetrievalEngine
 
@@ -19,30 +20,12 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def read_csv(path: Path) -> list[dict]:
-    with path.open("r", encoding="utf-8-sig", newline="") as stream:
-        return list(csv.DictReader(stream))
-
-
-def ensure_relevance_template(path: Path, questions: list[dict]) -> list[dict]:
-    fields = [
-        "id",
-        "expected_document_guids",
-        "expected_out_of_scope",
-        "review_status",
-        "reference_answer_he",
-        "review_notes",
-    ]
-    if not path.exists():
-        with path.open("w", encoding="utf-8-sig", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=fields)
-            writer.writeheader()
-            for question in questions:
-                writer.writerow({"id": question["id"], "review_status": "pending"})
-    rows = read_csv(path)
-    if [row["id"] for row in rows] != [row["id"] for row in questions]:
-        raise ValueError("Evaluation relevance rows must match the 50 question IDs in order")
-    return rows
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def compact(row: dict, score: float, rank: int) -> dict:
@@ -76,11 +59,7 @@ def labelled_metrics(records: list[dict], labels: dict[str, dict], mode: str) ->
     labelled = []
     for record in records:
         label = labels[record["id"]]
-        expected = {
-            value.strip()
-            for value in label.get("expected_document_guids", "").replace(",", ";").split(";")
-            if value.strip()
-        }
+        expected = set(label.get("expected_document_guids", []))
         if label.get("review_status") == "approved" and expected:
             labelled.append((record, expected))
     if not labelled:
@@ -111,13 +90,16 @@ def main() -> int:
     args = parser.parse_args()
     root = args.project_root.resolve()
     engine = RetrievalEngine(root)
-    questions = read_csv(root / Path(engine.config["inputs"]["evaluation_questions"]))
+    questions_path = root / Path(engine.config["inputs"]["evaluation_questions"])
+    questions = json.loads(questions_path.read_text(encoding="utf-8"))
+    if not isinstance(questions, list):
+        raise ValueError("Evaluation questions JSON must be an array")
     if len(questions) != 50:
         raise ValueError(f"Expected 50 evaluation questions, found {len(questions)}")
     if any(row.get("language") != "he" for row in questions):
         raise ValueError("Every evaluation question must have language=he")
-    labels_path = root / "data" / "metadata" / "eval_relevance.csv"
-    label_rows = ensure_relevance_template(labels_path, questions)
+    review_path = root / "data" / "metadata" / "eval_relevance_expert.json"
+    label_rows, label_summary = convert_review(root, review_path)
     labels = {row["id"]: row for row in label_rows}
 
     records = []
@@ -147,36 +129,8 @@ def main() -> int:
 
     output_path = root / "data" / "processed" / "retrieval_candidates.jsonl"
     atomic_jsonl(output_path, records)
-    review_path = root / "data" / "processed" / "eval_candidate_review.csv"
-    with review_path.open("w", encoding="utf-8-sig", newline="") as stream:
-        fields = ["שאלה", "שם_מסמך_מוצע", "עמודים_מוצעים", "כתובת_FCS"]
-        writer = csv.DictWriter(stream, fieldnames=fields)
-        writer.writeheader()
-        for record in records:
-            pooled = {}
-            for mode in ["bm25", "dense", "hybrid"]:
-                for result in record[mode][:5]:
-                    entry = pooled.setdefault(
-                        result["document_guid"],
-                        {
-                            "document_name": result["document_name"],
-                            "pages": set(),
-                            "source_catalogue_url": result["source_catalogue_url"],
-                        },
-                    )
-                    entry["pages"].add(f"{result['page_start']}-{result['page_end']}")
-            for result in sorted(pooled.values(), key=lambda value: (value["document_name"] or "").casefold()):
-                writer.writerow(
-                    {
-                        "שאלה": record["question"],
-                        "שם_מסמך_מוצע": result["document_name"],
-                        "עמודים_מוצעים": ";".join(sorted(result["pages"])),
-                        "כתובת_FCS": result["source_catalogue_url"],
-                    }
-                )
-
     metrics = {mode: labelled_metrics(records, labels, mode) for mode in ["bm25", "dense", "hybrid"]}
-    approved = sum(row.get("review_status") == "approved" for row in label_rows)
+    approved = label_summary["approved"]
     report = [
         "# Phase 2B retrieval diagnostic",
         "",
@@ -187,8 +141,8 @@ def main() -> int:
         f"- BM25/dense top-result document agreement: {top1_agreement}/{len(records)}",
         f"- Mean BM25/dense top-5 document Jaccard overlap: {statistics.mean(overlaps):.3f}",
         f"- Candidate results: `data/processed/retrieval_candidates.jsonl`",
-        f"- Unranked second-pass candidate pool: `data/processed/eval_candidate_review.csv`",
-        f"- Relevance labels: `data/metadata/eval_relevance.csv`",
+        f"- Expert review: `data/metadata/eval_relevance_expert.json`",
+        f"- Expert review SHA-256: `{sha256_file(review_path)}`",
         "",
         "## Ground-truth metrics",
         "",
@@ -217,7 +171,6 @@ def main() -> int:
     report_path = root / "reports" / "retrieval_evaluation.md"
     report_path.write_text("\n".join(report), encoding="utf-8")
     print(f"Wrote {output_path}")
-    print(f"Wrote {review_path}")
     print(f"Wrote {report_path}")
     return 0
 

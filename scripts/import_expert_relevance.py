@@ -1,27 +1,16 @@
 #!/usr/bin/env python3
-"""Map a canonical expert-review JSON file to the compact evaluation-label CSV."""
+"""Validate expert review JSON and map its human-readable sources to GUIDs."""
 
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import re
 import sys
-import tempfile
 import unicodedata
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
-
-OUTPUT_FIELDS = [
-    "id",
-    "expected_document_guids",
-    "expected_out_of_scope",
-    "review_status",
-    "reference_answer_he",
-    "review_notes",
-]
 
 REVIEW_SCHEMA_VERSION = 2
 OUTCOME_NOT_REVIEWED = "not_reviewed"
@@ -39,15 +28,6 @@ ALLOWED_OUTCOMES = {
 STATUS_PENDING = "pending"
 STATUS_APPROVED = "approved"
 ALLOWED_STATUSES = {STATUS_PENDING, STATUS_APPROVED}
-
-
-def read_csv(path: Path, expected_fields: list[str] | None = None) -> list[dict]:
-    with path.open("r", encoding="utf-8-sig", newline="") as stream:
-        reader = csv.DictReader(stream)
-        fields = reader.fieldnames or []
-        if expected_fields is not None and fields != expected_fields:
-            raise ValueError(f"Unexpected columns in {path}: {fields}")
-        return list(reader)
 
 
 def normalize_title(value: str) -> str:
@@ -135,7 +115,11 @@ def read_review(path: Path) -> list[dict]:
 
 
 def convert_review(root: Path, input_path: Path | None = None) -> tuple[list[dict], dict]:
-    canonical = read_csv(root / "data" / "metadata" / "eval_questions.csv")
+    canonical = json.loads(
+        (root / "data" / "metadata" / "eval_questions.json").read_text(encoding="utf-8")
+    )
+    if not isinstance(canonical, list):
+        raise ValueError("The canonical evaluation-question JSON must be an array")
     review_path = input_path or root / "data" / "metadata" / "eval_relevance_expert.json"
     expert_reviews = read_review(review_path)
     manifest = json.loads(
@@ -183,7 +167,7 @@ def convert_review(root: Path, input_path: Path | None = None) -> tuple[list[dic
             audit_notes.append(source_audit_note(source, document))
             mapped_source_count += 1
 
-        expected_out_of_scope = ""
+        expected_out_of_scope: bool | None = None
         machine_status = "pending"
         if status == STATUS_APPROVED:
             if not answer:
@@ -191,11 +175,11 @@ def convert_review(root: Path, input_path: Path | None = None) -> tuple[list[dic
             if outcome == OUTCOME_FOUND:
                 if not expected_guids:
                     raise ValueError(f"Approved question {canonical_row['id']} has no mapped FCS source")
-                expected_out_of_scope = "false"
+                expected_out_of_scope = False
             elif outcome == OUTCOME_OUTSIDE:
                 if expected_guids:
                     raise ValueError(f"Out-of-scope question {canonical_row['id']} must not have accepted FCS sources")
-                expected_out_of_scope = "true"
+                expected_out_of_scope = True
                 out_of_scope_count += 1
             elif outcome in {OUTCOME_NOT_FOUND, OUTCOME_UNCERTAIN, OUTCOME_NOT_REVIEWED}:
                 raise ValueError(
@@ -208,7 +192,7 @@ def convert_review(root: Path, input_path: Path | None = None) -> tuple[list[dic
         output.append(
             {
                 "id": canonical_row["id"],
-                "expected_document_guids": ";".join(expected_guids),
+                "expected_document_guids": expected_guids,
                 "expected_out_of_scope": expected_out_of_scope,
                 "review_status": machine_status,
                 "reference_answer_he": answer,
@@ -223,18 +207,6 @@ def convert_review(root: Path, input_path: Path | None = None) -> tuple[list[dic
     }
 
 
-def write_output(path: Path, rows: list[dict]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(
-        "w", encoding="utf-8-sig", newline="", delete=False, dir=path.parent, suffix=".tmp"
-    ) as stream:
-        writer = csv.DictWriter(stream, fieldnames=OUTPUT_FIELDS)
-        writer.writeheader()
-        writer.writerows(rows)
-        temporary = Path(stream.name)
-    temporary.replace(path)
-
-
 def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -246,18 +218,10 @@ def main() -> int:
         default=Path("data/metadata/eval_relevance_expert.json"),
         help="Canonical expert-review JSON exported by the web application",
     )
-    parser.add_argument("--output", type=Path, default=Path("data/metadata/eval_relevance.csv"))
-    parser.add_argument("--check", action="store_true", help="Validate and map without writing the compact CSV")
     args = parser.parse_args()
     root = args.project_root.resolve()
     input_path = args.input if args.input.is_absolute() else root / args.input
-    rows, summary = convert_review(root, input_path)
-    if args.check:
-        print(json.dumps(summary, ensure_ascii=False))
-        return 0
-    output = args.output if args.output.is_absolute() else root / args.output
-    write_output(output, rows)
-    print(f"Wrote {output}")
+    _rows, summary = convert_review(root, input_path)
     print(json.dumps(summary, ensure_ascii=False))
     return 0
 

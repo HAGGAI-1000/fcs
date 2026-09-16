@@ -8,7 +8,7 @@ on:
       - ".github/workflows/pages.yml"
       - "review_app/**"
       - "scripts/test_review_app.py"
-      - "data/metadata/eval_questions.csv"
+      - "data/metadata/eval_questions.json"
   workflow_dispatch:
 
 permissions:

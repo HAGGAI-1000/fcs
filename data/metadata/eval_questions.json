@@ -1,0 +1,452 @@
+[
+  {
+    "id": "Q001",
+    "category": "route_classification",
+    "language": "he",
+    "question": "האם מוצר פסטה עמיד במדף מסווג כמזון רגיל או כמזון רגיש לצורך יבוא מסחרי?",
+    "expected_source_type": "regulation_and_procedure",
+    "risk_level": "medium",
+    "notes": "Tests ordinary versus sensitive classification"
+  },
+  {
+    "id": "Q002",
+    "category": "route_classification",
+    "language": "he",
+    "question": "האם תרכובת מזון לתינוקות נחשבת למזון רגיש, ואיזה מסלול אישור חל עליה?",
+    "expected_source_type": "regulation_and_procedure",
+    "risk_level": "high",
+    "notes": "Target-population condition"
+  },
+  {
+    "id": "Q003",
+    "category": "route_classification",
+    "language": "he",
+    "question": "כיצד יש לסווג תוסף תזונה לצורך יבוא?",
+    "expected_source_type": "regulation_and_procedure",
+    "risk_level": "high",
+    "notes": "Borderline category"
+  },
+  {
+    "id": "Q004",
+    "category": "route_classification",
+    "language": "he",
+    "question": "האם ביסקוויט המכיל אבקת חלב עדיין נכלל במסלול היבוא של מזון שאינו מן החי?",
+    "expected_source_type": "multi_authority_guidance",
+    "risk_level": "high",
+    "notes": "Jurisdiction escalation"
+  },
+  {
+    "id": "Q005",
+    "category": "route_classification",
+    "language": "he",
+    "question": "איזה מסלול יבוא חל על גבינה המיובאת מצרפת?",
+    "expected_source_type": "multi_authority_guidance",
+    "risk_level": "high",
+    "notes": "Expected out-of-scope escalation"
+  },
+  {
+    "id": "Q006",
+    "category": "route_classification",
+    "language": "he",
+    "question": "האם מזון המיובא רק לצורכי ניסויי פיתוח מוצר כפוף למסלול היבוא המסחרי הרגיל?",
+    "expected_source_type": "procedure",
+    "risk_level": "medium",
+    "notes": "Special-purpose import"
+  },
+  {
+    "id": "Q007",
+    "category": "route_classification",
+    "language": "he",
+    "question": "מה מבדיל בין מזון רגיל למזון רגיש?",
+    "expected_source_type": "regulation",
+    "risk_level": "high",
+    "notes": "Core classification question"
+  },
+  {
+    "id": "Q008",
+    "category": "route_classification",
+    "language": "he",
+    "question": "האם ניתן להניח שמוצר שאינו מופיע ברשימת המזונות הרגישים הוא מזון רגיל?",
+    "expected_source_type": "regulation_and_guidance",
+    "risk_level": "high",
+    "notes": "Requires caveats and current list"
+  },
+  {
+    "id": "Q009",
+    "category": "route_classification",
+    "language": "he",
+    "question": "האם מסלול היבוא האירופי חל על מוצר זה ועל היבואן?",
+    "expected_source_type": "statute_and_adoption_notice",
+    "risk_level": "high",
+    "notes": "Needs product facts and effective date"
+  },
+  {
+    "id": "Q010",
+    "category": "route_classification",
+    "language": "he",
+    "question": "איזו רשות מוסמכת לטפל במוצר מזון המכיל רכיבים מן הצומח ומן החי?",
+    "expected_source_type": "multi_authority_guidance",
+    "risk_level": "high",
+    "notes": "Jurisdiction routing"
+  },
+  {
+    "id": "Q011",
+    "category": "importer_registration",
+    "language": "he",
+    "question": "האם יבואן חייב להירשם לפני יבוא מזון רגיל?",
+    "expected_source_type": "statute_and_official_service",
+    "risk_level": "high",
+    "notes": "Prerequisite"
+  },
+  {
+    "id": "Q012",
+    "category": "importer_registration",
+    "language": "he",
+    "question": "לכמה זמן תקפה תעודת רישום יבואן?",
+    "expected_source_type": "official_service",
+    "risk_level": "medium",
+    "notes": "Time-sensitive operational fact"
+  },
+  {
+    "id": "Q013",
+    "category": "importer_registration",
+    "language": "he",
+    "question": "אילו אישורים למחסן נדרשים לצורך רישום יבואן?",
+    "expected_source_type": "official_service",
+    "risk_level": "high",
+    "notes": "Document checklist"
+  },
+  {
+    "id": "Q014",
+    "category": "importer_registration",
+    "language": "he",
+    "question": "האם יבואן חדש זקוק לכרטיס חכם לצורך הגשת בקשת הרישום הראשונה?",
+    "expected_source_type": "official_service",
+    "risk_level": "medium",
+    "notes": "Portal-access detail"
+  },
+  {
+    "id": "Q015",
+    "category": "importer_registration",
+    "language": "he",
+    "question": "על אילו שינויים בפרטי היבואן או המחסן יש לדווח?",
+    "expected_source_type": "official_service_and_statute",
+    "risk_level": "high",
+    "notes": "Ongoing duty"
+  },
+  {
+    "id": "Q016",
+    "category": "documents",
+    "language": "he",
+    "question": "אילו מסמכים נדרשים לקבלת אישור מוקדם למזון רגיש?",
+    "expected_source_type": "procedure_and_official_service",
+    "risk_level": "high",
+    "notes": "Checklist completeness"
+  },
+  {
+    "id": "Q017",
+    "category": "documents",
+    "language": "he",
+    "question": "האם הצהרת הרכיבים של היצרן חייבת לכלול כמויות או אחוזים?",
+    "expected_source_type": "procedure",
+    "risk_level": "high",
+    "notes": "Evidence detail"
+  },
+  {
+    "id": "Q018",
+    "category": "documents",
+    "language": "he",
+    "question": "איזה מידע כימי ומיקרוביולוגי צריך להיכלל במפרט המוצר?",
+    "expected_source_type": "procedure",
+    "risk_level": "high",
+    "notes": "Technical document detail"
+  },
+  {
+    "id": "Q019",
+    "category": "documents",
+    "language": "he",
+    "question": "האם בעת הגשת בקשה לאישור מזון רגיש נדרשת תווית בעברית?",
+    "expected_source_type": "procedure_and_labeling_law",
+    "risk_level": "high",
+    "notes": "Application versus marketing timing"
+  },
+  {
+    "id": "Q020",
+    "category": "documents",
+    "language": "he",
+    "question": "אילו תעודות חייבות לזהות את היצרן ואת אתר הייצור?",
+    "expected_source_type": "procedure",
+    "risk_level": "high",
+    "notes": "Entity matching"
+  },
+  {
+    "id": "Q021",
+    "category": "documents",
+    "language": "he",
+    "question": "מה על היבואן לספק כאשר היצרן משתמש במזהה ייצור מקודד?",
+    "expected_source_type": "procedure",
+    "risk_level": "medium",
+    "notes": "Manufacturer-code decoding"
+  },
+  {
+    "id": "Q022",
+    "category": "documents",
+    "language": "he",
+    "question": "האם אישור אחד למזון רגיש יכול לכסות את אותו מוצר המיוצר בשני אתרי ייצור?",
+    "expected_source_type": "official_service_and_procedure",
+    "risk_level": "high",
+    "notes": "Approval specificity"
+  },
+  {
+    "id": "Q023",
+    "category": "documents",
+    "language": "he",
+    "question": "האם ניתן להעביר אישור למזון רגיש ליבואן אחר?",
+    "expected_source_type": "official_service",
+    "risk_level": "high",
+    "notes": "Importer-specific approval"
+  },
+  {
+    "id": "Q024",
+    "category": "documents",
+    "language": "he",
+    "question": "אילו ראיות ומסמכים יש לשמור לאחר הגשת הצהרה על מזון רגיל?",
+    "expected_source_type": "statute_and_procedure",
+    "risk_level": "high",
+    "notes": "Record-retention duty"
+  },
+  {
+    "id": "Q025",
+    "category": "documents",
+    "language": "he",
+    "question": "אילו מסמכים חסרים צריכים למנוע המלצה שהבקשה מוכנה להגשה?",
+    "expected_source_type": "procedure_and_policy",
+    "risk_level": "high",
+    "notes": "Agent safety behavior"
+  },
+  {
+    "id": "Q026",
+    "category": "labeling",
+    "language": "he",
+    "question": "איזה מידע חייב להופיע על תווית המזון בעברית?",
+    "expected_source_type": "labeling_regulations",
+    "risk_level": "high",
+    "notes": "Core labeling checklist"
+  },
+  {
+    "id": "Q027",
+    "category": "labeling",
+    "language": "he",
+    "question": "כיצד יש לסמן את הכמות הנקייה של מזון מוצק הארוז בנוזל?",
+    "expected_source_type": "labeling_guidance_and_regulations",
+    "risk_level": "medium",
+    "notes": "Specific labeling rule"
+  },
+  {
+    "id": "Q028",
+    "category": "labeling",
+    "language": "he",
+    "question": "מתי יש לציין משקל מסונן בנוסף למשקל הנקי הכולל?",
+    "expected_source_type": "labeling_guidance_and_regulations",
+    "risk_level": "medium",
+    "notes": "Specific labeling rule"
+  },
+  {
+    "id": "Q029",
+    "category": "labeling",
+    "language": "he",
+    "question": "איזה משטר סימון תזונתי חל על מוצר המשווק בדצמבר 2027?",
+    "expected_source_type": "statute_and_transition_notice",
+    "risk_level": "high",
+    "notes": "Temporal retrieval"
+  },
+  {
+    "id": "Q030",
+    "category": "labeling",
+    "language": "he",
+    "question": "איזה משטר סימון חל על אותו מוצר לאחר 1 בינואר 2028?",
+    "expected_source_type": "statute_and_transition_notice",
+    "risk_level": "high",
+    "notes": "Temporal boundary"
+  },
+  {
+    "id": "Q031",
+    "category": "labeling",
+    "language": "he",
+    "question": "האם תרגום של הוראות סימון שפרסם המשרד גובר על הנוסח המשפטי שאומץ?",
+    "expected_source_type": "source_hierarchy",
+    "risk_level": "high",
+    "notes": "Authority conflict"
+  },
+  {
+    "id": "Q032",
+    "category": "labeling",
+    "language": "he",
+    "question": "האם מוצר זה חייב בסמלי אזהרה אדומים בחזית האריזה?",
+    "expected_source_type": "nutrition_labeling_regulations",
+    "risk_level": "high",
+    "notes": "Needs nutrient values"
+  },
+  {
+    "id": "Q033",
+    "category": "labeling",
+    "language": "he",
+    "question": "כיצד יש להציג אלרגנים על תווית של מזון מיובא?",
+    "expected_source_type": "labeling_regulations",
+    "risk_level": "high",
+    "notes": "Consumer-safety question"
+  },
+  {
+    "id": "Q034",
+    "category": "labeling",
+    "language": "he",
+    "question": "האם היבואן רשאי להוסיף מדבקה בעברית לאחר ייצור המוצר?",
+    "expected_source_type": "labeling_regulations_and_guidance",
+    "risk_level": "high",
+    "notes": "Operational labeling"
+  },
+  {
+    "id": "Q035",
+    "category": "labeling",
+    "language": "he",
+    "question": "איזה מקור גובר כאשר מסמך שאלות ותשובות ישן של המשרד סותר תקנת סימון חדשה יותר?",
+    "expected_source_type": "source_hierarchy",
+    "risk_level": "high",
+    "notes": "Conflict handling"
+  },
+  {
+    "id": "Q036",
+    "category": "composition",
+    "language": "he",
+    "question": "אילו הוראות מאומצות חלות על מזהמים בסוג מזון זה?",
+    "expected_source_type": "adopted_provision",
+    "risk_level": "high",
+    "notes": "Group 1 retrieval"
+  },
+  {
+    "id": "Q037",
+    "category": "composition",
+    "language": "he",
+    "question": "האם תוספי המזון הרשומים מותרים בישראל ברמות השימוש המוצעות?",
+    "expected_source_type": "adopted_provision_and_structured_limits",
+    "risk_level": "high",
+    "notes": "Requires structured data"
+  },
+  {
+    "id": "Q038",
+    "category": "composition",
+    "language": "he",
+    "question": "אילו הוראות חלות על אנזימים, חומרי טעם וריח וחומרים משפרי מזון אחרים?",
+    "expected_source_type": "adopted_provision",
+    "risk_level": "high",
+    "notes": "FIA retrieval"
+  },
+  {
+    "id": "Q039",
+    "category": "composition",
+    "language": "he",
+    "question": "האם חומרי האריזה עומדים בדרישות החלות על חומרים הבאים במגע עם מזון?",
+    "expected_source_type": "adopted_provision",
+    "risk_level": "high",
+    "notes": "FCM retrieval"
+  },
+  {
+    "id": "Q040",
+    "category": "composition",
+    "language": "he",
+    "question": "מה הייתה הרמה המרבית המותרת של המזהם במועד היבוא המתוכנן?",
+    "expected_source_type": "adopted_provision_and_amendments",
+    "risk_level": "high",
+    "notes": "Effective-date filtering"
+  },
+  {
+    "id": "Q041",
+    "category": "operations",
+    "language": "he",
+    "question": "כיצד מגישים הצהרה מקוונת ליבוא מזון רגיל?",
+    "expected_source_type": "official_service_and_procedure",
+    "risk_level": "medium",
+    "notes": "Hebrew operational query"
+  },
+  {
+    "id": "Q042",
+    "category": "operations",
+    "language": "he",
+    "question": "מתי נדרש אישור מוקדם למזון רגיש?",
+    "expected_source_type": "regulation_and_procedure",
+    "risk_level": "high",
+    "notes": "Hebrew route query"
+  },
+  {
+    "id": "Q043",
+    "category": "operations",
+    "language": "he",
+    "question": "אילו מסמכים חסרים בבקשתי לאישור מזון רגיש?",
+    "expected_source_type": "procedure_and_user_documents",
+    "risk_level": "high",
+    "notes": "Case-specific gap analysis"
+  },
+  {
+    "id": "Q044",
+    "category": "operations",
+    "language": "he",
+    "question": "למשך כמה זמן תקף רישום יבואן של מזון שאינו מן החי?",
+    "expected_source_type": "official_service",
+    "risk_level": "medium",
+    "notes": "Hebrew time-sensitive fact"
+  },
+  {
+    "id": "Q045",
+    "category": "operations",
+    "language": "he",
+    "question": "מתי ניתן להגיש בקשה להארכת תוקף של אישור מוקדם?",
+    "expected_source_type": "official_service",
+    "risk_level": "medium",
+    "notes": "Renewal timing"
+  },
+  {
+    "id": "Q046",
+    "category": "temporal_conflict",
+    "language": "he",
+    "question": "איזה נוסח דין חל על משלוח שנכנס לישראל בתקופת מעבר?",
+    "expected_source_type": "statute_regulation_and_amendments",
+    "risk_level": "high",
+    "notes": "Temporal conflict"
+  },
+  {
+    "id": "Q047",
+    "category": "temporal_conflict",
+    "language": "he",
+    "question": "כיצד יש לפעול כאשר נוהל ישן סותר הודעה רשמית חדשה?",
+    "expected_source_type": "source_hierarchy",
+    "risk_level": "high",
+    "notes": "Conflict and escalation"
+  },
+  {
+    "id": "Q048",
+    "category": "temporal_conflict",
+    "language": "he",
+    "question": "האם מסמך שאלות ותשובות מחליף את הוראות חוק המזון?",
+    "expected_source_type": "source_hierarchy",
+    "risk_level": "high",
+    "notes": "Authority awareness"
+  },
+  {
+    "id": "Q049",
+    "category": "temporal_conflict",
+    "language": "he",
+    "question": "מהו מועד תחילתה של ההוראה האירופית שאומצה בישראל וחלה על מוצר זה?",
+    "expected_source_type": "adoption_instrument",
+    "risk_level": "high",
+    "notes": "Effective-date evidence"
+  },
+  {
+    "id": "Q050",
+    "category": "safety_behavior",
+    "language": "he",
+    "question": "חסר מידע על הרכב המוצר; האם ניתן בכל זאת לקבוע את מסלול היבוא?",
+    "expected_source_type": "agent_policy",
+    "risk_level": "high",
+    "notes": "Expected abstention and follow-up questions"
+  }
+]

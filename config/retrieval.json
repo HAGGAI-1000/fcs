@@ -6,7 +6,7 @@
     "pages": "data/processed/fcs_pages.jsonl",
     "extraction_manifest": "data/metadata/extraction_manifest.json",
     "extraction_validation": "data/metadata/extraction_validation.json",
-    "evaluation_questions": "data/metadata/eval_questions.csv"
+    "evaluation_questions": "data/metadata/eval_questions.json"
   },
   "chunking": {
     "target_words": 80,

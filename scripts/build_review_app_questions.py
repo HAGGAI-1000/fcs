@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Synchronize the static reviewer question data with the canonical CSV."""
+"""Synchronize the static reviewer question data with the canonical JSON."""
 
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import re
 import sys
@@ -18,10 +17,11 @@ def main() -> int:
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[1])
     args = parser.parse_args()
     root = args.project_root.resolve()
-    with (root / "data" / "metadata" / "eval_questions.csv").open(
-        "r", encoding="utf-8-sig", newline=""
-    ) as stream:
-        rows = list(csv.DictReader(stream))
+    rows = json.loads(
+        (root / "data" / "metadata" / "eval_questions.json").read_text(encoding="utf-8")
+    )
+    if not isinstance(rows, list):
+        raise ValueError("The canonical evaluation-question JSON must be an array")
     if len(rows) != 50 or len({row["id"] for row in rows}) != 50:
         raise ValueError("The reviewer application requires 50 unique evaluation questions")
     if any(row.get("language") != "he" or not re.search(r"[\u0590-\u05ff]", row["question"]) for row in rows):

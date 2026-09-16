@@ -31,7 +31,7 @@ Open `http://127.0.0.1:8765/`.
 
 ## Question synchronization
 
-After changing `data/metadata/eval_questions.csv`, rebuild the static question
+After changing `data/metadata/eval_questions.json`, rebuild the static question
 file and run the app tests:
 
 ```powershell

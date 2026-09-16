@@ -24,8 +24,9 @@ repeating the full question for every accepted source. The expert still records
 the exact FCS document title, relevant pages, displayed date, FCS URL, and
 optional notes. The JSON contains no document GUIDs.
 
-The expert searches the FCS website independently. Do not provide retrieval
-candidates during the first pass. A document catalogue is not required.
+The expert searches the FCS website independently. Retrieval candidates are not
+provided at any point, and there is no retrieval-assisted second pass. A
+document catalogue is not required.
 
 ## Review outcomes
 
@@ -44,39 +45,26 @@ A reviewer may set `review_status=approved` only when a source-backed answer is
 complete or when the need for evidence outside the FCS scope has itself been
 established.
 
-## Mapping the returned JSON
+## Validating and using the returned JSON
 
 Place the returned file at
-`data/metadata/eval_relevance_expert.json`. Validate document mapping without
-writing the compact labels:
-
-```powershell
-.\.venv\Scripts\python.exe .\scripts\import_expert_relevance.py --check
-```
-
-The mapper resolves each exact human-readable document title, optionally
-narrowed by date, against `data/metadata/fcs_document_downloads.json`. It
-validates that provided URLs use `fcs.health.gov.il`. Missing and ambiguous
-matches stop with an error; the script never guesses a GUID.
-
-After resolving any reported issues, create the machine-readable labels:
+`data/metadata/eval_relevance_expert.json`, then validate document mapping:
 
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\import_expert_relevance.py
 ```
 
-This writes `data/metadata/eval_relevance.csv`, which keeps compact question IDs
-and internal document GUIDs for the evaluator. This CSV is generated, not edited
-by the expert. Pending reviews do not contribute to Recall or MRR.
+The mapper resolves each exact human-readable document title, optionally
+narrowed by date, against `data/metadata/fcs_document_downloads.json`. It
+validates that provided URLs use `fcs.health.gov.il`. Missing and ambiguous
+matches stop with an error; the script never guesses a GUID or writes a derived
+label file.
 
-## Second-pass completeness check
+After resolving any reported issues, run `run_phase2b.ps1`. Evaluation reads the
+same expert JSON, maps sources to GUIDs in memory, and calculates document
+Recall@5 and MRR@10 for approved questions with expected FCS documents. The
+report records the SHA-256 checksum of the exact expert-review file used.
 
-Only after the independent first pass may the reviewer use
-`data/processed/eval_candidate_review.csv`. It contains an alphabetically
-ordered, unranked pool drawn from BM25, dense, and hybrid results. It omits
-retrieval method, rank, and GUID so it can be used to check for missed evidence
-without asking the expert to accept the system's output as truth.
-
-After approved labels have been imported, rerun `run_phase2b.ps1`. The evaluation
-report will calculate document Recall@5 and MRR@10 for approved questions that
-have expected FCS documents.
+`data/processed/retrieval_candidates.jsonl` is internal diagnostic output. It
+contains full BM25, dense, and hybrid results and is not part of the reviewer
+workflow or an additional source of relevance truth.

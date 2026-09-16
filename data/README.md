@@ -23,10 +23,8 @@
 - `processed/fcs_chunks.jsonl` - content-addressed, page-citable chunks used by
   BM25 and LlamaIndex retrieval.
 - `processed/retrieval_candidates.jsonl` - top BM25, dense, and hybrid evidence
-  for every Hebrew evaluation question.
-- `processed/eval_candidate_review.csv` - unranked pooled candidates from BM25,
-  dense, and hybrid retrieval. Use only for a second-pass completeness check
-  after the expert's independent FCS review.
+  for every Hebrew evaluation question. This is internal diagnostic output and
+  is not shown to the domain reviewer.
 - `indexes/llamaindex/` - checksum-versioned local LlamaIndex storage.
 - `models/fastembed/` - local multilingual embedding model cache.
 - `metadata/fcs_reference_classification.json` - type and collection routing for
@@ -38,9 +36,7 @@
 - `metadata/chunk_manifest.json` - input/output checksums and chunk statistics.
 - `metadata/index_manifest.json` - LlamaIndex version, embedding model, vector
   dimension, and content-addressed index path.
-- `metadata/eval_relevance.csv` - domain-review ground truth; keep
-  `review_status=pending` until the expected documents and Hebrew answer have
-  actually been reviewed.
+- `metadata/eval_questions.json` - canonical 50-question Hebrew evaluation set.
 - `metadata/eval_relevance_expert.json` - the single canonical expert-review
   handoff. It uses compact question IDs and English machine fields, retains
   Hebrew question/answer text, and nests any number of human-readable FCS
@@ -49,6 +45,11 @@
   to the domain expert for the GitHub Pages reviewer and its JSON export.
 - `metadata/phase2b_validation.json` - Phase 2B provenance and consistency
   validation result.
+
+Retrieval evaluation loads `eval_relevance_expert.json`, validates and maps its
+sources to document GUIDs in memory, and records the review-file checksum in the
+evaluation report. It does not create a second relevance file or a second-pass
+candidate-review artifact.
 
 Future ingestion must use the active manifests, never a recursive scan of this
 directory.

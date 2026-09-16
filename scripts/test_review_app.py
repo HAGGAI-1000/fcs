@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import csv
 import json
 import unittest
 from pathlib import Path
@@ -13,11 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReviewAppTests(unittest.TestCase):
-    def test_static_questions_match_canonical_csv(self) -> None:
-        with (ROOT / "data" / "metadata" / "eval_questions.csv").open(
-            "r", encoding="utf-8-sig", newline=""
-        ) as stream:
-            canonical = list(csv.DictReader(stream))
+    def test_static_questions_match_canonical_json(self) -> None:
+        canonical = json.loads(
+            (ROOT / "data" / "metadata" / "eval_questions.json").read_text(
+                encoding="utf-8"
+            )
+        )
         static = json.loads((ROOT / "review_app" / "questions.json").read_text(encoding="utf-8"))
         self.assertEqual(len(static), 50)
         self.assertEqual(
@@ -67,6 +67,15 @@ class ReviewAppTests(unittest.TestCase):
         self.assertEqual(payload["question_count"], 50)
         self.assertEqual(len(payload["reviews"]), 50)
         self.assertTrue(all(isinstance(row["sources"], list) for row in payload["reviews"]))
+
+    def test_active_evaluation_files_are_json_only(self) -> None:
+        metadata = ROOT / "data" / "metadata"
+        self.assertTrue((metadata / "eval_questions.json").is_file())
+        self.assertTrue((metadata / "eval_relevance_expert.json").is_file())
+        self.assertFalse((metadata / "eval_questions.csv").exists())
+        self.assertFalse((metadata / "eval_relevance.csv").exists())
+        evaluator = (ROOT / "scripts" / "evaluate_retrieval.py").read_text(encoding="utf-8")
+        self.assertNotIn("eval_candidate_review", evaluator)
 
     def test_pages_workflow_has_required_permissions(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")

@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import re
 import sys
@@ -28,15 +27,13 @@ INSTRUCTIONS_HE = """הנחיות לבדיקת הרלוונטיות
 6. יש לסמן שאלה כ"מאושר" רק לאחר השלמת הבדיקה. שאלה שסומנה "לא נמצא מקור לאחר חיפוש" או "לא ודאי" נשארת במצב "ממתין" עד להכרעה נוספת.
 7. הנתונים נשמרים בדפדפן המקומי בלבד. מומלץ לייצא את הקובץ במהלך העבודה.
 8. בסיום יש לשלוח קובץ אחד בלבד: eval_relevance_expert.json. אותו קובץ משמש גם לגיבוי וגם להעברת התוצאה.
-
-בדיקה משלימה
-רק לאחר השלמת הבדיקה העצמאית אפשר להשתמש בקובץ eval_candidate_review.csv כבדיקת שלמות. הקובץ מציג מאגר מועמדים ללא דירוג וללא ציון שיטת האחזור. הוא אינו מקור אמת.
 """
 
 
 def read_questions(path: Path) -> list[dict]:
-    with path.open("r", encoding="utf-8-sig", newline="") as stream:
-        rows = list(csv.DictReader(stream))
+    rows = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(rows, list):
+        raise ValueError("The canonical evaluation-question JSON must be an array")
     if len(rows) != 50:
         raise ValueError(f"Expected 50 evaluation questions, found {len(rows)}")
     if any(
@@ -83,7 +80,7 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="Replace the existing blank reviewer template")
     args = parser.parse_args()
     root = args.project_root.resolve()
-    questions = read_questions(root / "data" / "metadata" / "eval_questions.csv")
+    questions = read_questions(root / "data" / "metadata" / "eval_questions.json")
     metadata = root / "data" / "metadata"
     write_text(
         metadata / "eval_relevance_expert.json",

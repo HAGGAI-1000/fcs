@@ -18,8 +18,9 @@ language, but the application must explain them in Hebrew. Code, internal field
 names, and project documentation may remain in English.
 
 The Phase 1 evaluation set contains 50 Hebrew questions. The verifier requires
-every row to use `language=he` and to contain Hebrew question text. English
-acronyms and formal identifiers may appear inside an otherwise Hebrew question.
+every question object to use `language=he` and to contain Hebrew question text.
+English acronyms and formal identifiers may appear inside an otherwise Hebrew
+question.
 
 ## Repository layout
 
@@ -205,14 +206,15 @@ and returns the single GUID-free `eval_relevance_expert.json` file. Place it
 under `data/metadata/`, then run:
 
 ```powershell
-.\.venv\Scripts\python.exe .\scripts\import_expert_relevance.py --check
 .\.venv\Scripts\python.exe .\scripts\import_expert_relevance.py
 .\run_phase2b.ps1
 ```
 
-The first command validates human-readable document matching without writing
-labels. The second creates the compact `eval_relevance.csv`. Recall and MRR
-remain unavailable until rows are domain-approved. See
+The validation command resolves human-readable document metadata to GUIDs in
+memory and stops on missing or ambiguous matches. Phase 2B reads the same JSON
+directly, records its checksum in the report, and calculates metrics only for
+domain-approved reviews. No derived relevance CSV or second-pass review file is
+created. See
 `reports/evaluation_review_guide.md` and `reports/phase2b_status.md`.
 
 ## Expert-review web application
@@ -227,7 +229,7 @@ the portable backup and can be restored in another browser or device.
 
 GitHub Pages deployment is defined in `.github/workflows/pages.yml`. The
 workflow verifies that `review_app/questions.json` exactly matches the canonical
-50-question CSV before publishing. To rebuild and test locally:
+50-question JSON before publishing. To rebuild and test locally:
 
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\build_review_app_questions.py

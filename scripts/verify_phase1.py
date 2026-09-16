@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import json
 import re
@@ -25,7 +24,7 @@ def main() -> int:
         "config/crawl_policy.json",
         "config/sources.json",
         "data/README.md",
-        "data/metadata/eval_questions.csv",
+        "data/metadata/eval_questions.json",
         "data/metadata/fcs_publication_inventory.json",
         "reports/phase1_discovery.md",
         "reports/legal_source_hierarchy.md",
@@ -131,10 +130,12 @@ def main() -> int:
             if source.get("reference_id") not in reference_ids:
                 failures.append("Referenced download was not discovered by the FCS crawler")
 
-    question_path = root / "data" / "metadata" / "eval_questions.csv"
+    question_path = root / "data" / "metadata" / "eval_questions.json"
     if question_path.exists():
-        with question_path.open(encoding="utf-8-sig", newline="") as handle:
-            questions = list(csv.DictReader(handle))
+        questions = json.loads(question_path.read_text(encoding="utf-8"))
+        if not isinstance(questions, list):
+            failures.append("Evaluation questions JSON must be an array")
+            questions = []
         if len(questions) != 50:
             failures.append(f"Expected 50 evaluation questions, found {len(questions)}")
         if len({row["id"] for row in questions}) != len(questions):

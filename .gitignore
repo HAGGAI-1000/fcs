@@ -10,6 +10,7 @@ data/indexes/
 data/models/
 data/metadata/*.json
 !data/metadata/eval_relevance_expert.json
+!data/metadata/eval_questions.json
 data/metadata/*.jsonl
 data/metadata/*.tmp
 reports/fcs_crawl_run.md

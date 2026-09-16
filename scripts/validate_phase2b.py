@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import hashlib
 import json
 import re
@@ -27,11 +26,6 @@ def sha256_file(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
-
-
-def read_csv(path: Path) -> list[dict]:
-    with path.open("r", encoding="utf-8-sig", newline="") as stream:
-        return list(csv.DictReader(stream))
 
 
 def main() -> int:
@@ -97,8 +91,17 @@ def main() -> int:
         if not (index_dir / name).is_file():
             failures.append(f"Missing LlamaIndex storage file: {name}")
 
-    questions = read_csv(root / Path(config["inputs"]["evaluation_questions"]))
-    labels = read_csv(root / "data" / "metadata" / "eval_relevance.csv")
+    questions = json.loads(
+        (root / Path(config["inputs"]["evaluation_questions"])).read_text(encoding="utf-8")
+    )
+    if not isinstance(questions, list):
+        failures.append("Evaluation questions JSON must be an array")
+        questions = []
+    try:
+        labels, expert_summary = convert_review(root)
+    except (FileNotFoundError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        failures.append(f"Expert-review JSON is invalid: {exc}")
+        labels, expert_summary = [], {}
     candidates = read_jsonl(root / "data" / "processed" / "retrieval_candidates.jsonl")
     question_ids = [row.get("id") for row in questions]
     if len(questions) != 50 or len(set(question_ids)) != 50:
@@ -110,12 +113,8 @@ def main() -> int:
         failures.append("Relevance template IDs do not match evaluation questions")
     if [row.get("id") for row in candidates] != question_ids:
         failures.append("Retrieval candidate IDs do not match evaluation questions")
-    try:
-        _expert_rows, expert_summary = convert_review(root)
-        if expert_summary.get("questions") != 50:
-            failures.append("Expert-review files do not contain all 50 questions")
-    except (FileNotFoundError, KeyError, ValueError) as exc:
-        failures.append(f"Expert-review files are invalid: {exc}")
+    if expert_summary.get("questions") != 50:
+        failures.append("Expert-review JSON does not contain all 50 questions")
     for record in candidates:
         for mode in ["bm25", "dense", "hybrid"]:
             results = record.get(mode, [])
