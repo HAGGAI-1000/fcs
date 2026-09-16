@@ -47,18 +47,18 @@ class RetrievalUtilityTests(unittest.TestCase):
             }
         ]
         source = {
-            "שם_המסמך_באתר_FCS": "הנחיות ליבוא מזון",
-            "תאריך_פרסום_או_עדכון": "2026-09-16",
-            "כתובת_FCS": "https://fcs.health.gov.il/publicationsCategories/0",
+            "document_title": "הנחיות ליבוא מזון",
+            "publication_or_update_date": "2026-09-16",
+            "fcs_url": "https://fcs.health.gov.il/publicationsCategories/0",
         }
         self.assertEqual(match_document(source, documents)["guid"], "guid-1")
 
     def test_expert_source_rejects_non_fcs_url(self) -> None:
         documents = [{"guid": "guid-1", "document_name": "מסמך", "issue_date": ""}]
         source = {
-            "שם_המסמך_באתר_FCS": "מסמך",
-            "תאריך_פרסום_או_עדכון": "",
-            "כתובת_FCS": "https://example.com/document",
+            "document_title": "מסמך",
+            "publication_or_update_date": "",
+            "fcs_url": "https://example.com/document",
         }
         with self.assertRaisesRegex(ValueError, "outside the approved FCS host"):
             match_document(source, documents)

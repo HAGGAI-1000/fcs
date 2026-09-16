@@ -46,13 +46,13 @@ acronyms and formal identifiers may appear inside an otherwise Hebrew question.
   Unicode-aware BM25 baseline metadata.
 - `scripts/evaluate_retrieval.py` — runs all 50 Hebrew questions through BM25,
   dense, and reciprocal-rank-fusion retrieval.
-- `scripts/prepare_expert_review.py` — creates two Hebrew reviewer CSV files
-  containing full questions and human-readable FCS source fields, without GUIDs.
+- `scripts/prepare_expert_review.py` — creates one canonical expert-review JSON
+  template with compact IDs and nested human-readable FCS sources, without GUIDs.
 - `scripts/import_expert_relevance.py` — maps returned FCS titles, dates, and
   URLs to internal document GUIDs and refuses ambiguous matches.
 - `review_app/` — backend-free Hebrew reviewer application deployed with GitHub
-  Pages; supports any number of source rows per question and exports both expert
-  CSV files.
+  Pages; supports any number of source rows per question and exports one
+  canonical JSON file.
 - `scripts/search_retrieval.py` — Hebrew command-line retrieval demonstration.
 - `scripts/validate_phase2b.py` — verifies chunk provenance, index freshness,
   and evaluation outputs.
@@ -200,8 +200,9 @@ reuses the existing vectors. To demonstrate retrieval in Hebrew:
 ```
 
 The 50-question run currently produces candidate evidence, not an accuracy
-claim. The expert searches the FCS website independently and completes the two
-GUID-free Hebrew files under `data/metadata/`. After the files are returned:
+claim. The expert searches the FCS website independently in the Hebrew reviewer
+and returns the single GUID-free `eval_relevance_expert.json` file. Place it
+under `data/metadata/`, then run:
 
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\import_expert_relevance.py --check
@@ -219,9 +220,10 @@ remain unavailable until rows are domain-approved. See
 The static application under `review_app/` provides a Hebrew RTL interface for
 the independent domain review. It saves drafts only in the reviewer's browser,
 allows sources to be added or removed interactively, validates approval rules
-and FCS URLs, and exports the two CSV schemas consumed by
-`scripts/import_expert_relevance.py`. A JSON backup can be exported and restored
-when work must continue in another browser or device.
+and FCS URLs, and exports one English-keyed JSON file consumed by
+`scripts/import_expert_relevance.py`. Sources are nested under compact question
+IDs, eliminating the duplicated question/source CSV rows. The same JSON file is
+the portable backup and can be restored in another browser or device.
 
 GitHub Pages deployment is defined in `.github/workflows/pages.yml`. The
 workflow verifies that `review_app/questions.json` exactly matches the canonical

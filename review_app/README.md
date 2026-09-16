@@ -9,12 +9,16 @@ review of the 50 Hebrew evaluation questions.
 2. Search the FCS website independently for each question.
 3. Record the outcome, Hebrew reference answer, and any number of supporting
    source rows.
-4. Export a JSON backup periodically. Browser autosave is local to one browser
-   profile and device.
-5. At completion, export and return both CSV files.
+4. Export `eval_relevance_expert.json` periodically. Browser autosave is local
+   to one browser profile and device.
+5. At completion, return that single JSON file.
 
-The app never exposes internal GUIDs or retrieval candidates. It exports the
-exact Hebrew schemas accepted by `scripts/import_expert_relevance.py`.
+The app never exposes internal GUIDs or retrieval candidates. The JSON uses
+compact question IDs, English machine-field names and English enum values while
+retaining the Hebrew question and answer text. Sources are nested under their
+question, so question text is not repeated for each source. The same file can be
+imported back into the app and is accepted by
+`scripts/import_expert_relevance.py`.
 
 ## Local preview
 

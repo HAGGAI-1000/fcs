@@ -1,67 +1,33 @@
 #!/usr/bin/env python3
-"""Create Hebrew, GUID-free relevance-review files for a domain expert."""
+"""Create the canonical GUID-free JSON template for domain review."""
 
 from __future__ import annotations
 
 import argparse
 import csv
+import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 
-QUESTION_FIELDS = [
-    "שאלה",
-    "תוצאת_הבדיקה",
-    "תשובת_ייחוס_בעברית",
-    "הערות_בדיקה",
-    "סטטוס_בדיקה",
-]
-SOURCE_FIELDS = [
-    "שאלה",
-    "שם_המסמך_באתר_FCS",
-    "עמודים_רלוונטיים",
-    "תאריך_פרסום_או_עדכון",
-    "כתובת_FCS",
-    "הערות_מקור",
-]
+REVIEW_SCHEMA_VERSION = 2
 
-OUTCOME_NOT_REVIEWED = "טרם נבדק"
-OUTCOME_FOUND = "נמצא מקור מתאים"
-OUTCOME_NOT_FOUND = "לא נמצא מקור לאחר חיפוש"
-OUTCOME_OUTSIDE = "נדרש מקור מחוץ לאתר FCS"
-OUTCOME_UNCERTAIN = "לא ודאי"
-ALLOWED_OUTCOMES = {
-    OUTCOME_NOT_REVIEWED,
-    OUTCOME_FOUND,
-    OUTCOME_NOT_FOUND,
-    OUTCOME_OUTSIDE,
-    OUTCOME_UNCERTAIN,
-}
-
-STATUS_PENDING = "ממתין"
-STATUS_APPROVED = "מאושר"
-ALLOWED_STATUSES = {STATUS_PENDING, STATUS_APPROVED}
-
-
-INSTRUCTIONS_HE = """הנחיות למילוי קובצי הערכת הרלוונטיות
+INSTRUCTIONS_HE = """הנחיות לבדיקת הרלוונטיות
 
 מטרת הבדיקה
 יש לענות על 50 השאלות באמצעות חיפוש עצמאי באתר FCS ובמסמכי ה-PDF המוצגים בו. אין להשתמש ברשימת תוצאות שהופקה על ידי מערכת האחזור בשלב הבדיקה הראשון.
 
-קובץ השאלות: eval_relevance_expert_he.csv
-1. אין לשנות את נוסח השאלות ואין למחוק שורות.
-2. בעמודה "תוצאת_הבדיקה" יש לבחור אחת מהאפשרויות: "נמצא מקור מתאים", "לא נמצא מקור לאחר חיפוש", "נדרש מקור מחוץ לאתר FCS", "לא ודאי" או "טרם נבדק".
-3. "לא נמצא מקור לאחר חיפוש" אינו זהה ל"נדרש מקור מחוץ לאתר FCS". אין לקבוע שהשאלה מחוץ לתחום רק מפני שלא נמצא מסמך.
-4. בעמודה "תשובת_ייחוס_בעברית" יש לכתוב תשובה קצרה ומדויקת בעברית ולציין בה עמודים או אסמכתאות.
-5. בעמודה "הערות_בדיקה" יש לציין אי-בהירות, סתירות, תלות בתאריך או מידע נוסף הנדרש מן המשתמש.
-6. יש לשנות את "סטטוס_בדיקה" ל"מאושר" רק לאחר השלמת הבדיקה. שאלה שסומנה "לא נמצא מקור לאחר חיפוש" או "לא ודאי" נשארת במצב "ממתין" עד להכרעה נוספת.
-
-קובץ המקורות: eval_relevance_expert_sources_he.csv
-7. לכל מקור מתאים יש למלא שורה נפרדת עם נוסח השאלה המלא, שם המסמך בדיוק כפי שהוא מופיע באתר FCS, העמודים הרלוונטיים, תאריך הפרסום או העדכון אם הוא מוצג, וכתובת ה-FCS המלאה.
-8. אם יש כמה מקורות לאותה שאלה, יש להעתיק את השורה ולהשאיר את נוסח השאלה זהה לחלוטין בכל השורות.
-9. אין צורך למצוא או לרשום GUID. לאחר החזרת הקבצים, הסקריפט ממפה את שם המסמך והפרטים הנלווים ל-GUID הפנימי. התאמה חסרה או דו-משמעית נעצרת לבדיקה ידנית ואינה מנוחשת.
-10. יש לשמור את שני הקבצים בפורמט CSV ובקידוד UTF-8 בלי לשנות את שמות העמודות.
+השימוש ביישום
+1. יש למלא את הבדיקה ביישום העברי שפורסם ב-GitHub Pages.
+2. לכל שאלה יש לבחור תוצאה, לכתוב תשובת ייחוס בעברית ולהוסיף הערות לפי הצורך.
+3. לכל מקור מתאים יש להוסיף רשומת מקור נפרדת עם שם המסמך בדיוק כפי שהוא מופיע באתר FCS, העמודים הרלוונטיים, תאריך הפרסום או העדכון אם הוא מוצג, וכתובת ה-FCS המלאה.
+4. אין צורך למצוא או לרשום GUID. לאחר החזרת הקובץ, הסקריפט ממפה את שם המסמך והפרטים הנלווים ל-GUID הפנימי. התאמה חסרה או דו-משמעית נעצרת לבדיקה ידנית ואינה מנוחשת.
+5. "לא נמצא מקור לאחר חיפוש" אינו זהה ל"נדרש מקור מחוץ לאתר FCS". אין לקבוע שהשאלה מחוץ לתחום רק מפני שלא נמצא מסמך.
+6. יש לסמן שאלה כ"מאושר" רק לאחר השלמת הבדיקה. שאלה שסומנה "לא נמצא מקור לאחר חיפוש" או "לא ודאי" נשארת במצב "ממתין" עד להכרעה נוספת.
+7. הנתונים נשמרים בדפדפן המקומי בלבד. מומלץ לייצא את הקובץ במהלך העבודה.
+8. בסיום יש לשלוח קובץ אחד בלבד: eval_relevance_expert.json. אותו קובץ משמש גם לגיבוי וגם להעברת התוצאה.
 
 בדיקה משלימה
 רק לאחר השלמת הבדיקה העצמאית אפשר להשתמש בקובץ eval_candidate_review.csv כבדיקת שלמות. הקובץ מציג מאגר מועמדים ללא דירוג וללא ציון שיטת האחזור. הוא אינו מקור אמת.
@@ -73,19 +39,40 @@ def read_questions(path: Path) -> list[dict]:
         rows = list(csv.DictReader(stream))
     if len(rows) != 50:
         raise ValueError(f"Expected 50 evaluation questions, found {len(rows)}")
-    if any(row.get("language") != "he" or not re.search(r"[\u0590-\u05ff]", row.get("question", "")) for row in rows):
+    if any(
+        row.get("language") != "he"
+        or not re.search(r"[\u0590-\u05ff]", row.get("question", ""))
+        for row in rows
+    ):
         raise ValueError("Every evaluation question must contain Hebrew and language=he")
     return rows
 
 
-def write_csv(path: Path, fields: list[str], rows: list[dict], force: bool) -> None:
+def build_review(questions: list[dict]) -> dict:
+    return {
+        "schema_version": REVIEW_SCHEMA_VERSION,
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "question_count": len(questions),
+        "reviews": [
+            {
+                "question_id": row["id"],
+                "question_text_he": row["question"],
+                "outcome": "not_reviewed",
+                "review_status": "pending",
+                "reference_answer_he": "",
+                "review_notes": "",
+                "sources": [],
+            }
+            for row in questions
+        ],
+    }
+
+
+def write_text(path: Path, content: str, force: bool) -> None:
     if path.exists() and not force:
         raise FileExistsError(f"Refusing to overwrite existing review file without --force: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8-sig", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
+    path.write_text(content, encoding="utf-8")
 
 
 def main() -> int:
@@ -93,30 +80,22 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--force", action="store_true", help="Replace existing blank reviewer templates")
+    parser.add_argument("--force", action="store_true", help="Replace the existing blank reviewer template")
     args = parser.parse_args()
     root = args.project_root.resolve()
     questions = read_questions(root / "data" / "metadata" / "eval_questions.csv")
-
-    question_rows = [
-        {
-            "שאלה": row["question"],
-            "תוצאת_הבדיקה": OUTCOME_NOT_REVIEWED,
-            "תשובת_ייחוס_בעברית": "",
-            "הערות_בדיקה": "",
-            "סטטוס_בדיקה": STATUS_PENDING,
-        }
-        for row in questions
-    ]
-    source_rows = [{"שאלה": row["question"]} for row in questions]
     metadata = root / "data" / "metadata"
-    write_csv(metadata / "eval_relevance_expert_he.csv", QUESTION_FIELDS, question_rows, args.force)
-    write_csv(metadata / "eval_relevance_expert_sources_he.csv", SOURCE_FIELDS, source_rows, args.force)
-    instructions = metadata / "eval_relevance_instructions_he.txt"
-    if instructions.exists() and not args.force:
-        raise FileExistsError(f"Refusing to overwrite instructions without --force: {instructions}")
-    instructions.write_text("\ufeff" + INSTRUCTIONS_HE, encoding="utf-8")
-    print("Created GUID-free Hebrew expert-review files for 50 questions")
+    write_text(
+        metadata / "eval_relevance_expert.json",
+        json.dumps(build_review(questions), ensure_ascii=False, indent=2) + "\n",
+        args.force,
+    )
+    write_text(
+        metadata / "eval_relevance_instructions_he.txt",
+        "\ufeff" + INSTRUCTIONS_HE,
+        args.force,
+    )
+    print("Created one GUID-free expert-review JSON file for 50 questions")
     return 0
 
 

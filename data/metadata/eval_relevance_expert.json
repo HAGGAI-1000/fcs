@@ -1,0 +1,457 @@
+{
+  "schema_version": 2,
+  "exported_at": "2026-09-16T10:22:24.360241+00:00",
+  "question_count": 50,
+  "reviews": [
+    {
+      "question_id": "Q001",
+      "question_text_he": "האם מוצר פסטה עמיד במדף מסווג כמזון רגיל או כמזון רגיש לצורך יבוא מסחרי?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q002",
+      "question_text_he": "האם תרכובת מזון לתינוקות נחשבת למזון רגיש, ואיזה מסלול אישור חל עליה?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q003",
+      "question_text_he": "כיצד יש לסווג תוסף תזונה לצורך יבוא?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q004",
+      "question_text_he": "האם ביסקוויט המכיל אבקת חלב עדיין נכלל במסלול היבוא של מזון שאינו מן החי?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q005",
+      "question_text_he": "איזה מסלול יבוא חל על גבינה המיובאת מצרפת?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q006",
+      "question_text_he": "האם מזון המיובא רק לצורכי ניסויי פיתוח מוצר כפוף למסלול היבוא המסחרי הרגיל?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q007",
+      "question_text_he": "מה מבדיל בין מזון רגיל למזון רגיש?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q008",
+      "question_text_he": "האם ניתן להניח שמוצר שאינו מופיע ברשימת המזונות הרגישים הוא מזון רגיל?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q009",
+      "question_text_he": "האם מסלול היבוא האירופי חל על מוצר זה ועל היבואן?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q010",
+      "question_text_he": "איזו רשות מוסמכת לטפל במוצר מזון המכיל רכיבים מן הצומח ומן החי?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q011",
+      "question_text_he": "האם יבואן חייב להירשם לפני יבוא מזון רגיל?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q012",
+      "question_text_he": "לכמה זמן תקפה תעודת רישום יבואן?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q013",
+      "question_text_he": "אילו אישורים למחסן נדרשים לצורך רישום יבואן?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q014",
+      "question_text_he": "האם יבואן חדש זקוק לכרטיס חכם לצורך הגשת בקשת הרישום הראשונה?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q015",
+      "question_text_he": "על אילו שינויים בפרטי היבואן או המחסן יש לדווח?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q016",
+      "question_text_he": "אילו מסמכים נדרשים לקבלת אישור מוקדם למזון רגיש?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q017",
+      "question_text_he": "האם הצהרת הרכיבים של היצרן חייבת לכלול כמויות או אחוזים?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q018",
+      "question_text_he": "איזה מידע כימי ומיקרוביולוגי צריך להיכלל במפרט המוצר?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q019",
+      "question_text_he": "האם בעת הגשת בקשה לאישור מזון רגיש נדרשת תווית בעברית?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q020",
+      "question_text_he": "אילו תעודות חייבות לזהות את היצרן ואת אתר הייצור?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q021",
+      "question_text_he": "מה על היבואן לספק כאשר היצרן משתמש במזהה ייצור מקודד?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q022",
+      "question_text_he": "האם אישור אחד למזון רגיש יכול לכסות את אותו מוצר המיוצר בשני אתרי ייצור?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q023",
+      "question_text_he": "האם ניתן להעביר אישור למזון רגיש ליבואן אחר?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q024",
+      "question_text_he": "אילו ראיות ומסמכים יש לשמור לאחר הגשת הצהרה על מזון רגיל?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q025",
+      "question_text_he": "אילו מסמכים חסרים צריכים למנוע המלצה שהבקשה מוכנה להגשה?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q026",
+      "question_text_he": "איזה מידע חייב להופיע על תווית המזון בעברית?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q027",
+      "question_text_he": "כיצד יש לסמן את הכמות הנקייה של מזון מוצק הארוז בנוזל?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q028",
+      "question_text_he": "מתי יש לציין משקל מסונן בנוסף למשקל הנקי הכולל?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q029",
+      "question_text_he": "איזה משטר סימון תזונתי חל על מוצר המשווק בדצמבר 2027?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q030",
+      "question_text_he": "איזה משטר סימון חל על אותו מוצר לאחר 1 בינואר 2028?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q031",
+      "question_text_he": "האם תרגום של הוראות סימון שפרסם המשרד גובר על הנוסח המשפטי שאומץ?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q032",
+      "question_text_he": "האם מוצר זה חייב בסמלי אזהרה אדומים בחזית האריזה?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q033",
+      "question_text_he": "כיצד יש להציג אלרגנים על תווית של מזון מיובא?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q034",
+      "question_text_he": "האם היבואן רשאי להוסיף מדבקה בעברית לאחר ייצור המוצר?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q035",
+      "question_text_he": "איזה מקור גובר כאשר מסמך שאלות ותשובות ישן של המשרד סותר תקנת סימון חדשה יותר?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q036",
+      "question_text_he": "אילו הוראות מאומצות חלות על מזהמים בסוג מזון זה?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q037",
+      "question_text_he": "האם תוספי המזון הרשומים מותרים בישראל ברמות השימוש המוצעות?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q038",
+      "question_text_he": "אילו הוראות חלות על אנזימים, חומרי טעם וריח וחומרים משפרי מזון אחרים?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q039",
+      "question_text_he": "האם חומרי האריזה עומדים בדרישות החלות על חומרים הבאים במגע עם מזון?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q040",
+      "question_text_he": "מה הייתה הרמה המרבית המותרת של המזהם במועד היבוא המתוכנן?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q041",
+      "question_text_he": "כיצד מגישים הצהרה מקוונת ליבוא מזון רגיל?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q042",
+      "question_text_he": "מתי נדרש אישור מוקדם למזון רגיש?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q043",
+      "question_text_he": "אילו מסמכים חסרים בבקשתי לאישור מזון רגיש?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q044",
+      "question_text_he": "למשך כמה זמן תקף רישום יבואן של מזון שאינו מן החי?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q045",
+      "question_text_he": "מתי ניתן להגיש בקשה להארכת תוקף של אישור מוקדם?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q046",
+      "question_text_he": "איזה נוסח דין חל על משלוח שנכנס לישראל בתקופת מעבר?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q047",
+      "question_text_he": "כיצד יש לפעול כאשר נוהל ישן סותר הודעה רשמית חדשה?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q048",
+      "question_text_he": "האם מסמך שאלות ותשובות מחליף את הוראות חוק המזון?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q049",
+      "question_text_he": "מהו מועד תחילתה של ההוראה האירופית שאומצה בישראל וחלה על מוצר זה?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    },
+    {
+      "question_id": "Q050",
+      "question_text_he": "חסר מידע על הרכב המוצר; האם ניתן בכל זאת לקבוע את מסלול היבוא?",
+      "outcome": "not_reviewed",
+      "review_status": "pending",
+      "reference_answer_he": "",
+      "review_notes": "",
+      "sources": []
+    }
+  ]
+}

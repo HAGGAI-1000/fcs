@@ -1,30 +1,24 @@
 "use strict";
 
-const STORAGE_KEY = "fcs-expert-review-v1";
-const REVIEW_VERSION = 1;
-const QUESTION_HEADERS = [
-  "שאלה",
-  "תוצאת_הבדיקה",
-  "תשובת_ייחוס_בעברית",
-  "הערות_בדיקה",
-  "סטטוס_בדיקה",
-];
-const SOURCE_HEADERS = [
-  "שאלה",
-  "שם_המסמך_באתר_FCS",
-  "עמודים_רלוונטיים",
-  "תאריך_פרסום_או_עדכון",
-  "כתובת_FCS",
-  "הערות_מקור",
-];
+const STORAGE_KEY = "fcs-expert-review-v2";
+const LEGACY_STORAGE_KEY = "fcs-expert-review-v1";
+const REVIEW_VERSION = 2;
 const OUTCOMES = new Set([
-  "טרם נבדק",
-  "נמצא מקור מתאים",
-  "לא נמצא מקור לאחר חיפוש",
-  "נדרש מקור מחוץ לאתר FCS",
-  "לא ודאי",
+  "not_reviewed",
+  "source_found",
+  "source_not_found",
+  "requires_non_fcs_source",
+  "uncertain",
 ]);
-const STATUSES = new Set(["ממתין", "מאושר"]);
+const STATUSES = new Set(["pending", "approved"]);
+const LEGACY_OUTCOMES = {
+  "טרם נבדק": "not_reviewed",
+  "נמצא מקור מתאים": "source_found",
+  "לא נמצא מקור לאחר חיפוש": "source_not_found",
+  "נדרש מקור מחוץ לאתר FCS": "requires_non_fcs_source",
+  "לא ודאי": "uncertain",
+};
+const LEGACY_STATUSES = { "ממתין": "pending", "מאושר": "approved" };
 
 const elements = {
   progressText: document.querySelector("#progress-text"),
@@ -44,10 +38,8 @@ const elements = {
   sourcesList: document.querySelector("#sources-list"),
   questionErrors: document.querySelector("#question-errors"),
   validateAll: document.querySelector("#validate-all"),
-  exportQuestions: document.querySelector("#export-questions"),
-  exportSources: document.querySelector("#export-sources"),
-  exportBackup: document.querySelector("#export-backup"),
-  importBackup: document.querySelector("#import-backup"),
+  exportReview: document.querySelector("#export-review"),
+  importReview: document.querySelector("#import-review"),
   resetAll: document.querySelector("#reset-all"),
   globalMessage: document.querySelector("#global-message"),
 };
@@ -62,8 +54,8 @@ function blankSource() {
 
 function blankReview() {
   return {
-    outcome: "טרם נבדק",
-    status: "ממתין",
+    outcome: "not_reviewed",
+    status: "pending",
     answer: "",
     notes: "",
     sources: [blankSource()],
@@ -81,8 +73,10 @@ function cleanSource(value) {
 }
 
 function cleanReview(value) {
-  const outcome = OUTCOMES.has(value?.outcome) ? value.outcome : "טרם נבדק";
-  const status = STATUSES.has(value?.status) ? value.status : "ממתין";
+  const candidateOutcome = LEGACY_OUTCOMES[value?.outcome] ?? value?.outcome;
+  const candidateStatus = LEGACY_STATUSES[value?.status] ?? value?.status;
+  const outcome = OUTCOMES.has(candidateOutcome) ? candidateOutcome : "not_reviewed";
+  const status = STATUSES.has(candidateStatus) ? candidateStatus : "pending";
   const sources = Array.isArray(value?.sources) && value.sources.length
     ? value.sources.map(cleanSource)
     : [blankSource()];
@@ -108,7 +102,9 @@ function currentReview() {
 }
 
 function initializeState(stored) {
-  const storedReviews = stored?.version === REVIEW_VERSION && stored?.reviews ? stored.reviews : {};
+  const storedReviews = stored?.reviews && [1, REVIEW_VERSION].includes(stored?.version)
+    ? stored.reviews
+    : {};
   const reviews = {};
   for (const question of questions) {
     reviews[question.id] = cleanReview(storedReviews[question.id]);
@@ -122,7 +118,7 @@ function initializeState(stored) {
 
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch (_error) {
     return null;
@@ -151,14 +147,14 @@ function riskLabel(value) {
 
 function updateProgress() {
   const reviews = questions.map((question) => state.reviews[question.id]);
-  const reviewed = reviews.filter((review) => review.outcome !== "טרם נבדק").length;
-  const approved = reviews.filter((review) => review.status === "מאושר").length;
+  const reviewed = reviews.filter((review) => review.outcome !== "not_reviewed").length;
+  const approved = reviews.filter((review) => review.status === "approved").length;
   const percent = questions.length ? (reviewed / questions.length) * 100 : 0;
   elements.progressText.textContent = `${reviewed} מתוך ${questions.length} שאלות נבדקו · ${approved} אושרו`;
   elements.progressBar.style.width = `${percent}%`;
   elements.questionSelect.querySelectorAll("option").forEach((option, index) => {
     const review = state.reviews[questions[index].id];
-    const marker = review.status === "מאושר" ? "✓" : review.outcome !== "טרם נבדק" ? "•" : "";
+    const marker = review.status === "approved" ? "✓" : review.outcome !== "not_reviewed" ? "•" : "";
     option.textContent = `${marker} שאלה ${index + 1}`.trim();
   });
 }
@@ -253,16 +249,16 @@ function validateQuestion(question, review) {
     seenSources.add(duplicateKey);
   });
 
-  if (review.status === "מאושר") {
+  if (review.status === "approved") {
     if (!review.answer.trim()) errors.push("שאלה מאושרת חייבת לכלול תשובת ייחוס בעברית.");
-    if (review.outcome === "נמצא מקור מתאים" && completedSources.length === 0) {
+    if (review.outcome === "source_found" && completedSources.length === 0) {
       errors.push("שאלה עם מקור מתאים חייבת לכלול לפחות מקור אחד.");
     }
-    if (review.outcome === "נדרש מקור מחוץ לאתר FCS" && completedSources.length > 0) {
+    if (review.outcome === "requires_non_fcs_source" && completedSources.length > 0) {
       errors.push("שאלה שמחייבת מקור מחוץ ל-FCS אינה יכולה לכלול מקור FCS שאושר כתשובה.");
     }
-    if (["טרם נבדק", "לא נמצא מקור לאחר חיפוש", "לא ודאי"].includes(review.outcome)) {
-      errors.push(`לא ניתן לאשר שאלה כאשר תוצאת הבדיקה היא "${review.outcome}".`);
+    if (["not_reviewed", "source_not_found", "uncertain"].includes(review.outcome)) {
+      errors.push("לא ניתן לאשר שאלה עם תוצאת הבדיקה שנבחרה.");
     }
   }
 
@@ -294,20 +290,6 @@ function updateCurrentReview(field, value) {
   saveState();
 }
 
-function spreadsheetSafe(value) {
-  const text = String(value ?? "");
-  return /^[=+@]/.test(text.trimStart()) ? `'${text}` : text;
-}
-
-function csvCell(value) {
-  const text = spreadsheetSafe(value);
-  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
-}
-
-function csvText(headers, rows) {
-  return `\uFEFF${[headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n")}\r\n`;
-}
-
 function download(name, content, type) {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -331,58 +313,87 @@ function canExport() {
   return true;
 }
 
-function exportQuestionCsv() {
-  if (!canExport()) return;
-  const rows = questions.map((question) => {
-    const review = state.reviews[question.id];
-    return [question.question, review.outcome, review.answer, review.notes, review.status];
-  });
-  download("eval_relevance_expert_he.csv", csvText(QUESTION_HEADERS, rows), "text/csv;charset=utf-8");
-  showGlobal("קובץ השאלות יוצא בהצלחה.");
+function canonicalReview() {
+  return {
+    schema_version: REVIEW_VERSION,
+    exported_at: new Date().toISOString(),
+    question_count: questions.length,
+    reviews: questions.map((question) => {
+      const review = state.reviews[question.id];
+      return {
+        question_id: question.id,
+        question_text_he: question.question,
+        outcome: review.outcome,
+        review_status: review.status,
+        reference_answer_he: review.answer,
+        review_notes: review.notes,
+        sources: review.sources.filter(sourceHasContent).map((source) => ({
+          document_title: source.title,
+          relevant_pages: source.pages,
+          publication_or_update_date: source.date,
+          fcs_url: source.url,
+          source_notes: source.notes,
+        })),
+      };
+    }),
+  };
 }
 
-function exportSourceCsv() {
+function exportReview() {
   if (!canExport()) return;
-  const rows = [];
-  for (const question of questions) {
-    const review = state.reviews[question.id];
-    const sources = review.sources.filter(sourceHasContent);
-    if (!sources.length) {
-      rows.push([question.question, "", "", "", "", ""]);
-      continue;
-    }
-    for (const source of sources) {
-      rows.push([question.question, source.title, source.pages, source.date, source.url, source.notes]);
-    }
-  }
-  download("eval_relevance_expert_sources_he.csv", csvText(SOURCE_HEADERS, rows), "text/csv;charset=utf-8");
-  showGlobal("קובץ המקורות יוצא בהצלחה.");
-}
-
-function exportBackup() {
   download(
-    "fcs_expert_review_backup.json",
-    `${JSON.stringify(state, null, 2)}\n`,
+    "eval_relevance_expert.json",
+    `${JSON.stringify(canonicalReview(), null, 2)}\n`,
     "application/json;charset=utf-8",
   );
-  showGlobal("גיבוי JSON יוצא בהצלחה.");
+  showGlobal("קובץ ה-JSON יוצא בהצלחה.");
 }
 
-async function importBackup(file) {
+function stateFromCanonical(parsed) {
+  if (parsed?.schema_version !== REVIEW_VERSION || !Array.isArray(parsed?.reviews)) {
+    throw new Error("מבנה הקובץ אינו מתאים לגרסה הנוכחית.");
+  }
+  if (parsed.reviews.length !== questions.length) {
+    throw new Error("מספר השאלות בקובץ אינו מתאים.");
+  }
+  const reviews = {};
+  parsed.reviews.forEach((item, index) => {
+    const question = questions[index];
+    if (item?.question_id !== question.id || item?.question_text_he !== question.question) {
+      throw new Error(`השאלה ${index + 1} אינה תואמת לקובץ השאלות הנוכחי.`);
+    }
+    reviews[question.id] = cleanReview({
+      outcome: item.outcome,
+      status: item.review_status,
+      answer: item.reference_answer_he,
+      notes: item.review_notes,
+      sources: Array.isArray(item.sources)
+        ? item.sources.map((source) => ({
+            title: source.document_title,
+            pages: source.relevant_pages,
+            date: source.publication_or_update_date,
+            url: source.fcs_url,
+            notes: source.source_notes,
+          }))
+        : [],
+    });
+  });
+  return { version: REVIEW_VERSION, reviews, updatedAt: parsed.exported_at ?? null };
+}
+
+async function importReview(file) {
   try {
     const parsed = JSON.parse(await file.text());
-    if (parsed?.version !== REVIEW_VERSION || typeof parsed?.reviews !== "object") {
-      throw new Error("מבנה הגיבוי אינו מתאים לגרסה הנוכחית.");
-    }
-    initializeState(parsed);
+    const imported = Array.isArray(parsed?.reviews) ? stateFromCanonical(parsed) : parsed;
+    initializeState(imported);
     saveState();
     activeIndex = 0;
     render();
-    showGlobal("הגיבוי יובא בהצלחה.");
+    showGlobal("קובץ ה-JSON יובא בהצלחה.");
   } catch (error) {
-    showGlobal(`ייבוא הגיבוי נכשל: ${error.message}`, "error");
+    showGlobal(`ייבוא קובץ ה-JSON נכשל: ${error.message}`, "error");
   } finally {
-    elements.importBackup.value = "";
+    elements.importReview.value = "";
   }
 }
 
@@ -396,7 +407,7 @@ function bindEvents() {
     const previous = review.status;
     review.status = elements.reviewStatus.value;
     const errors = validateQuestion(currentQuestion(), review);
-    if (review.status === "מאושר" && errors.length) {
+    if (review.status === "approved" && errors.length) {
       review.status = previous;
       elements.reviewStatus.value = previous;
       showQuestionErrors(errors);
@@ -434,12 +445,10 @@ function bindEvents() {
     const errors = validateAllReviews();
     showGlobal(errors.length ? `${errors.length} בעיות נמצאו:\n${errors.slice(0, 10).join("\n")}` : "לא נמצאו בעיות מבניות.", errors.length ? "error" : "success");
   });
-  elements.exportQuestions.addEventListener("click", exportQuestionCsv);
-  elements.exportSources.addEventListener("click", exportSourceCsv);
-  elements.exportBackup.addEventListener("click", exportBackup);
-  elements.importBackup.addEventListener("change", () => {
-    const file = elements.importBackup.files?.[0];
-    if (file) importBackup(file);
+  elements.exportReview.addEventListener("click", exportReview);
+  elements.importReview.addEventListener("change", () => {
+    const file = elements.importReview.files?.[0];
+    if (file) importReview(file);
   });
   elements.resetAll.addEventListener("click", () => {
     if (!window.confirm("למחוק את כל הנתונים שנשמרו בדפדפן? לא ניתן לבטל פעולה זו.")) return;

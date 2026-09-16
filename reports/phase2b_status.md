@@ -39,7 +39,8 @@ All 50 questions produced BM25, dense, and hybrid candidates.
 The low agreement confirms that lexical and dense retrieval behave differently,
 but it does not show which is more accurate. Recall and MRR are intentionally
 withheld until expected source documents are reviewed independently. The expert
-uses two Hebrew, GUID-free CSV files and searches the FCS website directly.
+uses the Hebrew web reviewer, exports one GUID-free JSON file, and searches the
+FCS website directly.
 `data/processed/eval_candidate_review.csv` is reserved for an unranked second-pass
 completeness check; it is not shown during the initial review.
 
@@ -56,8 +57,9 @@ must not be tuned against unreviewed candidate output.
 
 ## Next gate
 
-A domain reviewer should complete the Hebrew question and source files using the
-FCS website. Run `scripts/import_expert_relevance.py --check`, resolve every
+A domain reviewer should complete the Hebrew web form using the FCS website and
+return `eval_relevance_expert.json`. Run
+`scripts/import_expert_relevance.py --check`, resolve every
 missing or ambiguous title match, then import the compact GUID labels. After
 that, rerun Phase 2B, compare Recall@5 and MRR@10, inspect failures by category
 and risk level, and only then choose the production retrieval configuration.

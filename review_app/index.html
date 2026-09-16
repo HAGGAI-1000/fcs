@@ -30,7 +30,7 @@
         <h2 id="independent-review-title">בדיקה עצמאית</h2>
         <p>
           יש לחפש באתר FCS ובמסמכי ה-PDF המוצגים בו. אין להשתמש בתוצאות האחזור של המערכת
-          בשלב הראשון. המידע נשמר בדפדפן זה בלבד עד לייצוא הקבצים.
+          בשלב הראשון. המידע נשמר בדפדפן זה בלבד עד לייצוא הקובץ.
         </p>
       </section>
 
@@ -63,20 +63,20 @@
         <div class="form-grid">
           <label>
             <span>תוצאת הבדיקה</span>
-            <select id="review-outcome">
-              <option value="טרם נבדק">טרם נבדק</option>
-              <option value="נמצא מקור מתאים">נמצא מקור מתאים</option>
-              <option value="לא נמצא מקור לאחר חיפוש">לא נמצא מקור לאחר חיפוש</option>
-              <option value="נדרש מקור מחוץ לאתר FCS">נדרש מקור מחוץ לאתר FCS</option>
-              <option value="לא ודאי">לא ודאי</option>
+          <select id="review-outcome">
+              <option value="not_reviewed">טרם נבדק</option>
+              <option value="source_found">נמצא מקור מתאים</option>
+              <option value="source_not_found">לא נמצא מקור לאחר חיפוש</option>
+              <option value="requires_non_fcs_source">נדרש מקור מחוץ לאתר FCS</option>
+              <option value="uncertain">לא ודאי</option>
             </select>
           </label>
 
           <label>
             <span>סטטוס הבדיקה</span>
-            <select id="review-status">
-              <option value="ממתין">ממתין</option>
-              <option value="מאושר">מאושר</option>
+          <select id="review-status">
+              <option value="pending">ממתין</option>
+              <option value="approved">מאושר</option>
             </select>
           </label>
         </div>
@@ -106,16 +106,14 @@
       <section class="actions-panel" aria-labelledby="export-title">
         <div>
           <h2 id="export-title">שמירה וייצוא</h2>
-          <p>מומלץ לייצא גיבוי JSON במהלך העבודה. בסיום יש לשלוח את שני קובצי ה-CSV.</p>
+          <p>קובץ JSON יחיד משמש לגיבוי ולהעברת הבדיקה המלאה, כולל כל המקורות.</p>
         </div>
         <div class="button-row">
           <button id="validate-all" class="button secondary" type="button">בדוק את כל השאלות</button>
-          <button id="export-questions" class="button primary" type="button">ייצוא קובץ שאלות</button>
-          <button id="export-sources" class="button primary" type="button">ייצוא קובץ מקורות</button>
-          <button id="export-backup" class="button secondary" type="button">ייצוא גיבוי JSON</button>
+          <button id="export-review" class="button primary" type="button">ייצוא קובץ JSON</button>
           <label class="button secondary file-button">
-            ייבוא גיבוי JSON
-            <input id="import-backup" type="file" accept="application/json,.json" />
+            ייבוא קובץ JSON
+            <input id="import-review" type="file" accept="application/json,.json" />
           </label>
           <button id="reset-all" class="button danger" type="button">איפוס כל הנתונים</button>
         </div>

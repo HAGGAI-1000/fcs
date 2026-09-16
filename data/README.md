@@ -41,13 +41,12 @@
 - `metadata/eval_relevance.csv` - domain-review ground truth; keep
   `review_status=pending` until the expected documents and Hebrew answer have
   actually been reviewed.
-- `metadata/eval_relevance_expert_he.csv` - Hebrew question-level review form;
-  it contains full questions and no technical GUID fields.
-- `metadata/eval_relevance_expert_sources_he.csv` - Hebrew source-level form for
-  exact FCS document title, pages, displayed date, and FCS URL. Use one row per
-  accepted source.
+- `metadata/eval_relevance_expert.json` - the single canonical expert-review
+  handoff. It uses compact question IDs and English machine fields, retains
+  Hebrew question/answer text, and nests any number of human-readable FCS
+  sources under each question without exposing GUIDs.
 - `metadata/eval_relevance_instructions_he.txt` - Hebrew instructions supplied
-  to the domain expert with the two review CSV files.
+  to the domain expert for the GitHub Pages reviewer and its JSON export.
 - `metadata/phase2b_validation.json` - Phase 2B provenance and consistency
   validation result.
 

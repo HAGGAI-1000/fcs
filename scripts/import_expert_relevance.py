@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Map a completed Hebrew expert review to the compact evaluation-label CSV."""
+"""Map a canonical expert-review JSON file to the compact evaluation-label CSV."""
 
 from __future__ import annotations
 
@@ -14,21 +14,6 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
-from prepare_expert_review import (
-    ALLOWED_OUTCOMES,
-    ALLOWED_STATUSES,
-    OUTCOME_FOUND,
-    OUTCOME_NOT_FOUND,
-    OUTCOME_NOT_REVIEWED,
-    OUTCOME_OUTSIDE,
-    OUTCOME_UNCERTAIN,
-    QUESTION_FIELDS,
-    SOURCE_FIELDS,
-    STATUS_APPROVED,
-    STATUS_PENDING,
-)
-
-
 OUTPUT_FIELDS = [
     "id",
     "expected_document_guids",
@@ -37,6 +22,23 @@ OUTPUT_FIELDS = [
     "reference_answer_he",
     "review_notes",
 ]
+
+REVIEW_SCHEMA_VERSION = 2
+OUTCOME_NOT_REVIEWED = "not_reviewed"
+OUTCOME_FOUND = "source_found"
+OUTCOME_NOT_FOUND = "source_not_found"
+OUTCOME_OUTSIDE = "requires_non_fcs_source"
+OUTCOME_UNCERTAIN = "uncertain"
+ALLOWED_OUTCOMES = {
+    OUTCOME_NOT_REVIEWED,
+    OUTCOME_FOUND,
+    OUTCOME_NOT_FOUND,
+    OUTCOME_OUTSIDE,
+    OUTCOME_UNCERTAIN,
+}
+STATUS_PENDING = "pending"
+STATUS_APPROVED = "approved"
+ALLOWED_STATUSES = {STATUS_PENDING, STATUS_APPROVED}
 
 
 def read_csv(path: Path, expected_fields: list[str] | None = None) -> list[dict]:
@@ -78,17 +80,17 @@ def document_aliases(document: dict) -> set[str]:
 
 
 def match_document(source: dict, documents: list[dict]) -> dict:
-    title = (source.get("שם_המסמך_באתר_FCS") or "").strip()
+    title = (source.get("document_title") or "").strip()
     if not title:
         raise ValueError("Missing FCS document title")
     title_key = normalize_title(title)
     candidates = [document for document in documents if title_key in document_aliases(document)]
 
-    date_value = normalize_date(source.get("תאריך_פרסום_או_עדכון", ""))
+    date_value = normalize_date(source.get("publication_or_update_date", ""))
     if date_value:
         candidates = [document for document in candidates if (document.get("issue_date") or "")[:10] == date_value]
 
-    url = (source.get("כתובת_FCS") or "").strip()
+    url = (source.get("fcs_url") or "").strip()
     if url:
         host = (urlparse(url).hostname or "").lower()
         if host != "fcs.health.gov.il":
@@ -104,63 +106,65 @@ def match_document(source: dict, documents: list[dict]) -> dict:
     return candidates[0]
 
 
-def source_has_details(row: dict) -> bool:
-    return any((row.get(field) or "").strip() for field in SOURCE_FIELDS[1:])
-
-
 def source_audit_note(source: dict, document: dict) -> str:
-    parts = [f"מקור: {source['שם_המסמך_באתר_FCS']}"]
-    if source.get("עמודים_רלוונטיים"):
-        parts.append(f"עמודים: {source['עמודים_רלוונטיים']}")
-    if source.get("תאריך_פרסום_או_עדכון"):
-        parts.append(f"תאריך: {source['תאריך_פרסום_או_עדכון']}")
-    if source.get("כתובת_FCS"):
-        parts.append(f"URL: {source['כתובת_FCS']}")
+    parts = [f"מקור: {source['document_title']}"]
+    if source.get("relevant_pages"):
+        parts.append(f"עמודים: {source['relevant_pages']}")
+    if source.get("publication_or_update_date"):
+        parts.append(f"תאריך: {source['publication_or_update_date']}")
+    if source.get("fcs_url"):
+        parts.append(f"URL: {source['fcs_url']}")
     parts.append(f"GUID שמופה: {document['guid']}")
-    if source.get("הערות_מקור"):
-        parts.append(f"הערת מקור: {source['הערות_מקור']}")
+    if source.get("source_notes"):
+        parts.append(f"הערת מקור: {source['source_notes']}")
     return "; ".join(parts)
 
 
-def convert_review(root: Path) -> tuple[list[dict], dict]:
+def read_review(path: Path) -> list[dict]:
+    payload = json.loads(path.read_text(encoding="utf-8-sig"))
+    if payload.get("schema_version") != REVIEW_SCHEMA_VERSION:
+        raise ValueError(
+            f"Unsupported expert-review schema version: {payload.get('schema_version')!r}"
+        )
+    reviews = payload.get("reviews")
+    if not isinstance(reviews, list):
+        raise ValueError("Expert-review JSON must contain a reviews array")
+    if payload.get("question_count") != len(reviews):
+        raise ValueError("Expert-review question_count does not match the reviews array")
+    return reviews
+
+
+def convert_review(root: Path, input_path: Path | None = None) -> tuple[list[dict], dict]:
     canonical = read_csv(root / "data" / "metadata" / "eval_questions.csv")
-    expert_questions = read_csv(
-        root / "data" / "metadata" / "eval_relevance_expert_he.csv", QUESTION_FIELDS
-    )
-    expert_sources = read_csv(
-        root / "data" / "metadata" / "eval_relevance_expert_sources_he.csv", SOURCE_FIELDS
-    )
+    review_path = input_path or root / "data" / "metadata" / "eval_relevance_expert.json"
+    expert_reviews = read_review(review_path)
     manifest = json.loads(
         (root / "data" / "metadata" / "fcs_document_downloads.json").read_text(encoding="utf-8")
     )
     documents = manifest.get("documents", [])
-    canonical_questions = [row["question"] for row in canonical]
-    if [row.get("שאלה") for row in expert_questions] != canonical_questions:
-        raise ValueError("Expert question rows must exactly match the 50 canonical Hebrew questions in order")
-    known_questions = set(canonical_questions)
-    unknown_sources = sorted({row.get("שאלה", "") for row in expert_sources} - known_questions)
-    if unknown_sources:
-        raise ValueError(f"Source rows contain unknown or changed questions: {unknown_sources}")
-    source_question_set = {row.get("שאלה", "") for row in expert_sources}
-    missing_source_rows = [question for question in canonical_questions if question not in source_question_set]
-    if missing_source_rows:
-        raise ValueError("Every question must retain at least one row in the expert source file")
-
-    sources_by_question: dict[str, list[dict]] = {question: [] for question in canonical_questions}
-    for row in expert_sources:
-        if source_has_details(row):
-            sources_by_question[row["שאלה"]].append(row)
+    if len(expert_reviews) != len(canonical):
+        raise ValueError(
+            f"Expert review must contain {len(canonical)} questions, found {len(expert_reviews)}"
+        )
+    for index, (canonical_row, expert_row) in enumerate(
+        zip(canonical, expert_reviews, strict=True), start=1
+    ):
+        if expert_row.get("question_id") != canonical_row["id"]:
+            raise ValueError(f"Question {index} has an unexpected compact ID")
+        if expert_row.get("question_text_he") != canonical_row["question"]:
+            raise ValueError(f"Question {canonical_row['id']} text does not match the canonical set")
+        if not isinstance(expert_row.get("sources"), list):
+            raise ValueError(f"Question {canonical_row['id']} sources must be an array")
 
     output: list[dict] = []
     approved_count = 0
     mapped_source_count = 0
     out_of_scope_count = 0
-    for canonical_row, expert_row in zip(canonical, expert_questions, strict=True):
-        question = canonical_row["question"]
-        outcome = (expert_row.get("תוצאת_הבדיקה") or "").strip()
-        status = (expert_row.get("סטטוס_בדיקה") or "").strip()
-        answer = (expert_row.get("תשובת_ייחוס_בעברית") or "").strip()
-        notes = (expert_row.get("הערות_בדיקה") or "").strip()
+    for canonical_row, expert_row in zip(canonical, expert_reviews, strict=True):
+        outcome = (expert_row.get("outcome") or "").strip()
+        status = (expert_row.get("review_status") or "").strip()
+        answer = (expert_row.get("reference_answer_he") or "").strip()
+        notes = (expert_row.get("review_notes") or "").strip()
         if outcome not in ALLOWED_OUTCOMES:
             raise ValueError(f"Invalid review outcome for {canonical_row['id']}: {outcome!r}")
         if status not in ALLOWED_STATUSES:
@@ -168,8 +172,10 @@ def convert_review(root: Path) -> tuple[list[dict], dict]:
 
         expected_guids: list[str] = []
         audit_notes: list[str] = []
-        for source in sources_by_question[question]:
-            if not (source.get("עמודים_רלוונטיים") or "").strip():
+        for source in expert_row["sources"]:
+            if not isinstance(source, dict):
+                raise ValueError(f"A source for {canonical_row['id']} is not an object")
+            if not (source.get("relevant_pages") or "").strip():
                 raise ValueError(f"A source row for {canonical_row['id']} is missing relevant pages")
             document = match_document(source, documents)
             if document["guid"] not in expected_guids:
@@ -234,11 +240,18 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=Path("data/metadata/eval_relevance_expert.json"),
+        help="Canonical expert-review JSON exported by the web application",
+    )
     parser.add_argument("--output", type=Path, default=Path("data/metadata/eval_relevance.csv"))
     parser.add_argument("--check", action="store_true", help="Validate and map without writing the compact CSV")
     args = parser.parse_args()
     root = args.project_root.resolve()
-    rows, summary = convert_review(root)
+    input_path = args.input if args.input.is_absolute() else root / args.input
+    rows, summary = convert_review(root, input_path)
     if args.check:
         print(json.dumps(summary, ensure_ascii=False))
         return 0
