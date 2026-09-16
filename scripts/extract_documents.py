@@ -9,7 +9,7 @@ import json
 import re
 import sys
 import unicodedata
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,6 +39,33 @@ def normalize_text(value: str) -> str:
     )
     value = "\n".join(line.rstrip() for line in value.splitlines())
     return re.sub(r"\n{3,}", "\n\n", value).strip()
+
+
+def position_aware_text(page) -> str:
+    """Reconstruct lines by coordinates so Hebrew words use right-to-left order."""
+    positioned = page.get_text("words", sort=False)
+    if not positioned:
+        return normalize_text(page.get_text("text", sort=True) or "")
+    lines: dict[tuple[int, int], list[tuple]] = defaultdict(list)
+    first_seen: dict[tuple[int, int], int] = {}
+    for sequence, word in enumerate(positioned):
+        key = (int(word[5]), int(word[6]))
+        lines[key].append(word)
+        first_seen.setdefault(key, sequence)
+
+    output = []
+    for key in sorted(lines, key=first_seen.get):
+        line_words = lines[key]
+        line_text = " ".join(str(word[4]) for word in line_words)
+        hebrew = sum(is_hebrew(character) for character in line_text)
+        latin = sum(("A" <= character <= "Z") or ("a" <= character <= "z") for character in line_text)
+        ordered = sorted(line_words, key=lambda word: float(word[0]), reverse=hebrew > latin)
+        value = " ".join(str(word[4]) for word in ordered)
+        value = re.sub(r"\s+([,.;:!?%])", r"\1", value)
+        value = re.sub(r"([\[(])\s+", r"\1", value)
+        value = re.sub(r"\s+([\])])", r"\1", value)
+        output.append(value.strip())
+    return normalize_text("\n".join(output))
 
 
 def is_hebrew(character: str) -> bool:
@@ -109,10 +136,9 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        import pypdf
-        from pypdf import PdfReader
+        import pymupdf
     except ImportError:
-        print("pypdf is required. Install requirements-phase2.txt", file=sys.stderr)
+        print("PyMuPDF is required. Install requirements-phase2.txt", file=sys.stderr)
         return 2
 
     root = args.project_root.resolve()
@@ -155,15 +181,15 @@ def main() -> int:
             actual_hash = sha256_file(source_path)
             if actual_hash != source.get("sha256"):
                 raise ValueError("Source SHA-256 does not match the download manifest")
-            reader = PdfReader(source_path, strict=False)
-            if reader.is_encrypted and reader.decrypt("") == 0:
+            reader = pymupdf.open(source_path)
+            if reader.needs_pass and not reader.authenticate(""):
                 raise ValueError("PDF is encrypted and cannot be opened without a password")
-            page_count = len(reader.pages)
+            page_count = reader.page_count
             document_page_rows = []
-            for page_index, page in enumerate(reader.pages, start=1):
+            for page_index, page in enumerate(reader, start=1):
                 extraction_error = None
                 try:
-                    text = normalize_text(page.extract_text() or "")
+                    text = position_aware_text(page)
                 except Exception as exc:
                     text = ""
                     extraction_error = f"{type(exc).__name__}: {exc}"
@@ -173,7 +199,7 @@ def main() -> int:
                     **base,
                     "page_number": page_index,
                     "page_count": page_count,
-                    "extraction_method": "pypdf_native",
+                    "extraction_method": "pymupdf_position_aware",
                     "quality_state": state,
                     "needs_ocr": needs_ocr,
                     "extraction_error": extraction_error,
@@ -227,8 +253,8 @@ def main() -> int:
     manifest = {
         "extracted_at": now(),
         "scope_id": policy["scope_id"],
-        "extractor": "pypdf_native",
-        "extractor_version": pypdf.__version__,
+        "extractor": "pymupdf_position_aware",
+        "extractor_version": pymupdf.__version__,
         "input_manifest": "data/metadata/fcs_document_downloads.json",
         "input_manifest_sha256": sha256_file(input_path),
         "document_output": "data/processed/fcs_documents.jsonl",

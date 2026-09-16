@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="theme-color" content="#164e63" />
+    <title>בדיקת שאלות יבוא מזון</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#review-form">דלג לטופס הבדיקה</a>
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">פרויקט FCS</p>
+        <h1>בדיקת שאלות יבוא מזון</h1>
+        <p class="subtitle">בדיקה עצמאית של מקורות באתר שירות המזון הארצי</p>
+      </div>
+      <a class="button secondary" href="https://fcs.health.gov.il/" target="_blank" rel="noopener noreferrer">
+        פתח את אתר FCS
+      </a>
+    </header>
+
+    <main>
+      <section class="notice" aria-labelledby="independent-review-title">
+        <h2 id="independent-review-title">בדיקה עצמאית</h2>
+        <p>
+          יש לחפש באתר FCS ובמסמכי ה-PDF המוצגים בו. אין להשתמש בתוצאות האחזור של המערכת
+          בשלב הראשון. המידע נשמר בדפדפן זה בלבד עד לייצוא הקבצים.
+        </p>
+      </section>
+
+      <section class="progress-panel" aria-label="מצב הבדיקה">
+        <div class="progress-copy">
+          <strong id="progress-text">טוען שאלות…</strong>
+          <span id="save-status" role="status" aria-live="polite"></span>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <span id="progress-bar"></span>
+        </div>
+      </section>
+
+      <section class="question-nav" aria-label="בחירת שאלה">
+        <button id="previous-question" class="button secondary" type="button">השאלה הקודמת</button>
+        <label>
+          <span>מעבר לשאלה</span>
+          <select id="question-select"></select>
+        </label>
+        <button id="next-question" class="button secondary" type="button">השאלה הבאה</button>
+      </section>
+
+      <section id="review-form" class="review-card" aria-labelledby="question-heading">
+        <div class="question-heading-row">
+          <span id="question-number" class="question-number"></span>
+          <span id="risk-badge" class="risk-badge"></span>
+        </div>
+        <h2 id="question-heading"></h2>
+
+        <div class="form-grid">
+          <label>
+            <span>תוצאת הבדיקה</span>
+            <select id="review-outcome">
+              <option value="טרם נבדק">טרם נבדק</option>
+              <option value="נמצא מקור מתאים">נמצא מקור מתאים</option>
+              <option value="לא נמצא מקור לאחר חיפוש">לא נמצא מקור לאחר חיפוש</option>
+              <option value="נדרש מקור מחוץ לאתר FCS">נדרש מקור מחוץ לאתר FCS</option>
+              <option value="לא ודאי">לא ודאי</option>
+            </select>
+          </label>
+
+          <label>
+            <span>סטטוס הבדיקה</span>
+            <select id="review-status">
+              <option value="ממתין">ממתין</option>
+              <option value="מאושר">מאושר</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="full-width">
+          <span>תשובת ייחוס בעברית</span>
+          <textarea id="reference-answer" rows="6" placeholder="תשובה קצרה ומדויקת, כולל עמודים או אסמכתאות"></textarea>
+        </label>
+
+        <label class="full-width">
+          <span>הערות בדיקה</span>
+          <textarea id="review-notes" rows="4" placeholder="אי-בהירות, סתירות, תלות בתאריך או מידע נוסף הנדרש מן המשתמש"></textarea>
+        </label>
+
+        <div class="sources-heading">
+          <div>
+            <h3>מקורות תומכים</h3>
+            <p>יש למלא שורה נפרדת לכל מסמך. אין צורך ב-GUID.</p>
+          </div>
+          <button id="add-source" class="button primary" type="button">הוסף מקור</button>
+        </div>
+        <div id="sources-list" class="sources-list"></div>
+
+        <div id="question-errors" class="validation-errors" role="alert" hidden></div>
+      </section>
+
+      <section class="actions-panel" aria-labelledby="export-title">
+        <div>
+          <h2 id="export-title">שמירה וייצוא</h2>
+          <p>מומלץ לייצא גיבוי JSON במהלך העבודה. בסיום יש לשלוח את שני קובצי ה-CSV.</p>
+        </div>
+        <div class="button-row">
+          <button id="validate-all" class="button secondary" type="button">בדוק את כל השאלות</button>
+          <button id="export-questions" class="button primary" type="button">ייצוא קובץ שאלות</button>
+          <button id="export-sources" class="button primary" type="button">ייצוא קובץ מקורות</button>
+          <button id="export-backup" class="button secondary" type="button">ייצוא גיבוי JSON</button>
+          <label class="button secondary file-button">
+            ייבוא גיבוי JSON
+            <input id="import-backup" type="file" accept="application/json,.json" />
+          </label>
+          <button id="reset-all" class="button danger" type="button">איפוס כל הנתונים</button>
+        </div>
+        <div id="global-message" class="global-message" role="status" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>היישום אינו שולח נתונים לשרת. הנתונים נשמרים מקומית בדפדפן עד להורדה.</p>
+    </footer>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

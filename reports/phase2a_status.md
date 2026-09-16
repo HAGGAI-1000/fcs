@@ -17,11 +17,17 @@ chunk, embed, or vectorize the corpus.
 - Low-text pages requiring review: 58
 - Empty pages requiring review: 29
 - Total pages flagged for OCR review: 87 across 22 documents
-- Phase 2A regression checks: 8/8 passed
+- Phase 2A regression checks: 9/9 passed
 
 The extractor uses Unicode-aware letter counts, so Arabic source material is
 not falsely classified as low-text merely because it contains little Hebrew or
 Latin text.
+
+Before Phase 2B indexing, a chunk audit found that some selectable Hebrew text
+was emitted in reversed PDF glyph order. Phase 2A now uses PyMuPDF word
+coordinates to order Hebrew-dominant lines from right to left while preserving
+Latin identifiers and numbers. The corrected full extraction passed the same
+checksum and structural validation.
 
 ## Visual OCR audit
 

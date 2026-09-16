@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "scope_id": "fcs_portal_and_direct_references_only",
+  "application_language": "he",
+  "inputs": {
+    "pages": "data/processed/fcs_pages.jsonl",
+    "extraction_manifest": "data/metadata/extraction_manifest.json",
+    "extraction_validation": "data/metadata/extraction_validation.json",
+    "evaluation_questions": "data/metadata/eval_questions.csv"
+  },
+  "chunking": {
+    "target_words": 80,
+    "overlap_words": 16,
+    "minimum_letters": 4,
+    "sparse_heading_max_words": 30
+  },
+  "retrieval": {
+    "dense_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "dense_model_cache": "data/models/fastembed",
+    "dense_index": "data/indexes/llamaindex",
+    "top_k": 10,
+    "fusion_candidate_k": 20,
+    "rrf_k": 60
+  }
+}

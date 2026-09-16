@@ -6,6 +6,8 @@ __pycache__/
 logs/*.log
 data/raw/
 data/processed/
+data/indexes/
+data/models/
 data/metadata/*.json
 data/metadata/*.jsonl
 data/metadata/*.tmp
@@ -13,3 +15,6 @@ reports/fcs_crawl_run.md
 reports/extraction_quality.md
 reports/extraction_validation.md
 reports/reference_classification.md
+reports/chunking_quality.md
+reports/retrieval_evaluation.md
+reports/phase2b_validation.md

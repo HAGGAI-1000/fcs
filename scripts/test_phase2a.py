@@ -6,7 +6,7 @@ from __future__ import annotations
 import unittest
 
 from collect_referenced_sources import assess_payload
-from extract_documents import normalize_text, quality_state, text_metrics
+from extract_documents import normalize_text, position_aware_text, quality_state, text_metrics
 
 
 class PayloadAssessmentTests(unittest.TestCase):
@@ -40,6 +40,17 @@ class TextQualityTests(unittest.TestCase):
 
     def test_normalization_removes_control_characters(self) -> None:
         self.assertEqual(normalize_text("abc\x00\n\n\nxyz"), "abc\n\nxyz")
+
+    def test_position_aware_extraction_orders_hebrew_right_to_left(self) -> None:
+        class FakePage:
+            def get_text(self, mode: str, sort: bool = False):
+                self.assert_mode = (mode, sort)
+                return [
+                    (10, 0, 20, 10, "מזון", 0, 0, 0),
+                    (30, 0, 40, 10, "יבוא", 0, 0, 1),
+                ]
+
+        self.assertEqual(position_aware_text(FakePage()), "יבוא מזון")
 
 
 if __name__ == "__main__":

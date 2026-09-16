@@ -40,6 +40,22 @@ acronyms and formal identifiers may appear inside an otherwise Hebrew question.
   checksums, and extraction metadata.
 - `scripts/test_phase2a.py` — regression checks for multilingual text quality
   and rejection of empty, false-PDF, and anti-bot payloads.
+- `scripts/build_chunks.py` — builds stable page-citable chunks from the
+  validated PDF extraction.
+- `scripts/build_indexes.py` — persists a local LlamaIndex vector index and
+  Unicode-aware BM25 baseline metadata.
+- `scripts/evaluate_retrieval.py` — runs all 50 Hebrew questions through BM25,
+  dense, and reciprocal-rank-fusion retrieval.
+- `scripts/prepare_expert_review.py` — creates two Hebrew reviewer CSV files
+  containing full questions and human-readable FCS source fields, without GUIDs.
+- `scripts/import_expert_relevance.py` — maps returned FCS titles, dates, and
+  URLs to internal document GUIDs and refuses ambiguous matches.
+- `review_app/` — backend-free Hebrew reviewer application deployed with GitHub
+  Pages; supports any number of source rows per question and exports both expert
+  CSV files.
+- `scripts/search_retrieval.py` — Hebrew command-line retrieval demonstration.
+- `scripts/validate_phase2b.py` — verifies chunk provenance, index freshness,
+  and evaluation outputs.
 - `scripts/audit_public_access.py` — retained historical discovery tool; it is
   not invoked by the active collection workflow.
 - `scripts/verify_phase1.py` — validates Phase 1 deliverables and manifests.
@@ -161,3 +177,57 @@ See `reports/phase2a_status.md` for the latest corpus metrics, visual OCR audit,
 and direct-reference retrieval findings. The accepted MVP decision in
 `reports/ocr_policy.md` is to proceed without bulk OCR and add it selectively
 only when visual evidence or retrieval evaluation demonstrates a need.
+
+## Phase 2B: LlamaIndex retrieval baseline
+
+Phase 2B uses a local LlamaIndex `VectorStoreIndex`, a lightweight multilingual
+FastEmbed model, a Unicode-aware BM25 implementation, and reciprocal rank
+fusion. The model and index remain below `data/models/` and `data/indexes/` and
+are intentionally not committed to Git.
+
+```powershell
+Set-Location C:\projects\fcs
+.\.venv\Scripts\python.exe -m pip install -r requirements-phase2b.txt
+.\run_phase2b.ps1
+```
+
+The index is content-addressed by the chunk-file checksum, so an unchanged run
+reuses the existing vectors. To demonstrate retrieval in Hebrew:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\search_retrieval.py `
+  --query "מה מבדיל בין מזון רגיל למזון רגיש?" --mode hybrid --top-k 5
+```
+
+The 50-question run currently produces candidate evidence, not an accuracy
+claim. The expert searches the FCS website independently and completes the two
+GUID-free Hebrew files under `data/metadata/`. After the files are returned:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\import_expert_relevance.py --check
+.\.venv\Scripts\python.exe .\scripts\import_expert_relevance.py
+.\run_phase2b.ps1
+```
+
+The first command validates human-readable document matching without writing
+labels. The second creates the compact `eval_relevance.csv`. Recall and MRR
+remain unavailable until rows are domain-approved. See
+`reports/evaluation_review_guide.md` and `reports/phase2b_status.md`.
+
+## Expert-review web application
+
+The static application under `review_app/` provides a Hebrew RTL interface for
+the independent domain review. It saves drafts only in the reviewer's browser,
+allows sources to be added or removed interactively, validates approval rules
+and FCS URLs, and exports the two CSV schemas consumed by
+`scripts/import_expert_relevance.py`. A JSON backup can be exported and restored
+when work must continue in another browser or device.
+
+GitHub Pages deployment is defined in `.github/workflows/pages.yml`. The
+workflow verifies that `review_app/questions.json` exactly matches the canonical
+50-question CSV before publishing. To rebuild and test locally:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\build_review_app_questions.py
+.\.venv\Scripts\python.exe .\scripts\test_review_app.py
+```
